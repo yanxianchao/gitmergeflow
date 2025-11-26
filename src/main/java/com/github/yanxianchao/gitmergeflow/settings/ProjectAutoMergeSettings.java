@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @Service(Service.Level.PROJECT)
 @State(
-        name = "com.github.yanxianchao.automerge.settings.ProjectAutoMergeSettings",
+        name = "com.github.yanxianchao.gitmergeflow.settings.ProjectAutoMergeSettings",
         storages = @Storage("ProjectAutoMergeSettings.xml")
 )
 public final class ProjectAutoMergeSettings implements PersistentStateComponent<ProjectAutoMergeSettings> {
