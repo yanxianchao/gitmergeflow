@@ -37,10 +37,6 @@
     <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- 项目服务配置 -->
-        <projectService 
-            serviceImplementation="com.github.yanxianchao.gitmergeflow.settings.ProjectAutoMergeSettings"/>
-        
         <!-- 启动活动配置 -->
         <postStartupActivity 
             implementation="com.github.yanxianchao.gitmergeflow.push.PushDialogExtension"/>
