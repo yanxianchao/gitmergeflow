@@ -3,123 +3,113 @@ package com.github.yanxianchao.gitmergeflow.push;
 import com.github.yanxianchao.gitmergeflow.settings.ProjectAutoMergeSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.ui.NonFocusableCheckBox;
 import com.intellij.util.ui.JBUI;
 import git4idea.repo.GitRepository;
 import org.jetbrains.annotations.NotNull;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.AWTEventListener;
 import java.awt.event.WindowEvent;
 
-public class PushDialogExtension implements StartupActivity {
+public class PushDialogExtension implements ProjectActivity {
     
-    private JCheckBox myPushToBranchCheckBox;
-    private JComboBox<String> myBranchComboBox;
-    private ProjectAutoMergeSettings mySettings;
-    private Timer dialogCheckTimer;
-    private Project currentProject;
+    
     
     // 静态变量用于保存推送时的状态
     private static volatile boolean lastPushToBranchState = false;
     private static volatile String lastSelectedBranch = "";
     
+    // 全局的AWT事件监听器，避免重复添加
+    private static AWTEventListener globalAWTListener;
+    private static final Object listenerLock = new Object();
+    
     @Override
-    public void runActivity(@NotNull Project project) {
-        this.currentProject = project;
-        mySettings = ProjectAutoMergeSettings.getInstance(project);
-        
+    public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
         System.out.println("推送对话框扩展：为项目初始化活动 - " + project.getName());
         
-        // 使用AWTEventListener监听所有窗口事件
+        // 使用全局单例的AWT事件监听器
         ApplicationManager.getApplication().invokeLater(() -> {
-            monitorForPushDialog(project);
+            initializeGlobalListener();
         });
+        
+        return Unit.INSTANCE;
     }
     
-    private void monitorForPushDialog(Project project) {
-        // 监听所有AWT事件，特别是窗口事件
-        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-            @Override
-            public void eventDispatched(AWTEvent event) {
-                if (event instanceof WindowEvent) {
-                    WindowEvent windowEvent = (WindowEvent) event;
-                    if (windowEvent.getID() == WindowEvent.WINDOW_OPENED) {
-                        Window window = windowEvent.getWindow();
-                        if (window instanceof JDialog) {
-                            JDialog dialog = (JDialog) window;
-                            String title = dialog.getTitle();
-                            System.out.println("对话框已打开：" + title);
-                            
-                            // 检查是否是推送对话框
-                            if (title != null && title.contains("Push")) {
-                                if (!hasCustomComponent(dialog)) {
-                                    System.out.println("发现推送对话框：" + title);
-                                    SwingUtilities.invokeLater(() -> {
-                                        if (project != null && !project.isDisposed()) {
-                                            // 再次检查，避免重复添加
-                                            if (!hasCustomComponent(dialog)) {
-                                                addCustomComponentToDialog(dialog, project);
+    private static void initializeGlobalListener() {
+        synchronized (listenerLock) {
+            if (globalAWTListener == null) {
+                globalAWTListener = new AWTEventListener() {
+                    @Override
+                    public void eventDispatched(AWTEvent event) {
+                        if (event instanceof WindowEvent) {
+                            WindowEvent windowEvent = (WindowEvent) event;
+                            if (windowEvent.getID() == WindowEvent.WINDOW_OPENED) {
+                                Window window = windowEvent.getWindow();
+                                if (window instanceof JDialog) {
+                                    JDialog dialog = (JDialog) window;
+                                    String title = dialog.getTitle();
+                                    
+                                    // 检查是否是推送对话框
+                                    if (title != null && title.contains("Push")) {
+                                        SwingUtilities.invokeLater(() -> {
+                                            // 获取当前活动的项目
+                                            Project currentProject = getCurrentActiveProject(dialog);
+                                            if (currentProject != null && !currentProject.isDisposed()) {
+                                                if (!hasCustomComponent(dialog)) {
+                                                    System.out.println("发现推送对话框：" + title + "，项目：" + currentProject.getName());
+                                                    addCustomComponentToDialog(dialog, currentProject);
+                                                }
                                             }
-                                        } else {
-                                            System.out.println("项目已销毁，跳过对话框组件添加");
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                };
+                Toolkit.getDefaultToolkit().addAWTEventListener(globalAWTListener, AWTEvent.WINDOW_EVENT_MASK);
+                System.out.println("已初始化全局AWT事件监听器");
             }
-        }, AWTEvent.WINDOW_EVENT_MASK);
-        
-        // 同时定期检查现有窗口，但避免重复检查
-        if (dialogCheckTimer != null) {
-            dialogCheckTimer.stop();
         }
-        dialogCheckTimer = new Timer(1000, e -> {
-            checkExistingWindows(project);
-        });
-        dialogCheckTimer.start();
     }
     
-    private void checkExistingWindows(Project project) {
-        // 检查项目状态
-        if (project == null || project.isDisposed()) {
-            System.out.println("项目已销毁，停止检查窗口");
-            return;
-        }
-        
-        Window[] windows = Window.getWindows();
-        for (Window window : windows) {
-            if (window instanceof JDialog && window.isVisible()) {
-                JDialog dialog = (JDialog) window;
-                String title = dialog.getTitle();
-                if (title != null && title.contains("Push")) {
-                    // 只检查组件是否存在
-                    if (!hasCustomComponent(dialog)) {
-                        System.out.println("发现已存在的推送对话框：" + title);
-                        SwingUtilities.invokeLater(() -> {
-                            if (project != null && !project.isDisposed()) {
-                                // 再次检查，避免重复添加
-                                if (!hasCustomComponent(dialog)) {
-                                    addCustomComponentToDialog(dialog, project);
-                                }
-                            } else {
-                                System.out.println("项目已销毁，跳过对话框组件添加");
-                            }
-                        });
+    private static Project getCurrentActiveProject(JDialog dialog) {
+        // 方法1：通过对话框的父窗口查找项目
+        Window owner = dialog.getOwner();
+        if (owner != null) {
+            // 尝试从窗口标题中获取项目信息
+            if (owner instanceof Frame) {
+                Frame frame = (Frame) owner;
+                String title = frame.getTitle();
+                if (title != null) {
+                    // 查找所有打开的项目，匹配标题
+                    for (Project project : com.intellij.openapi.project.ProjectManager.getInstance().getOpenProjects()) {
+                        if (title.contains(project.getName())) {
+                            return project;
+                        }
                     }
                 }
             }
         }
         
+        // 方法2：获取最后一个活动的项目（作为备选）
+        Project[] openProjects = com.intellij.openapi.project.ProjectManager.getInstance().getOpenProjects();
+        if (openProjects.length > 0) {
+            // 返回最后打开的项目
+            return openProjects[openProjects.length - 1];
+        }
         
+        return null;
     }
     
-    private boolean hasCustomComponent(JDialog dialog) {
+    
+    
+    private static boolean hasCustomComponent(JDialog dialog) {
         // 检查对话框是否已包含我们的自定义组件（通过名称检查）
         Component found = findComponentByName(dialog, "AutoMergePushOptions");
         if (found != null) {
@@ -138,7 +128,7 @@ public class PushDialogExtension implements StartupActivity {
         return false;
     }
     
-    private Component findComponentWithText(Container container, String text) {
+    private static Component findComponentWithText(Container container, String text) {
         for (Component component : container.getComponents()) {
             if (component instanceof JCheckBox) {
                 JCheckBox checkBox = (JCheckBox) component;
@@ -156,7 +146,7 @@ public class PushDialogExtension implements StartupActivity {
         return null;
     }
     
-    private Component findComponentByName(Container container, String name) {
+    private static Component findComponentByName(Container container, String name) {
         for (Component component : container.getComponents()) {
             if (name.equals(component.getName())) {
                 return component;
@@ -171,7 +161,7 @@ public class PushDialogExtension implements StartupActivity {
         return null;
     }
     
-    private void addCustomComponentToDialog(JDialog dialog, Project project) {
+    private static void addCustomComponentToDialog(JDialog dialog, Project project) {
         try {
             System.out.println("尝试向对话框添加自定义组件：" + dialog.getTitle());
             
@@ -213,7 +203,7 @@ public class PushDialogExtension implements StartupActivity {
         }
     }
     
-    private boolean addAboveButtonPanel(Container container, JPanel customPanel) {
+    private static boolean addAboveButtonPanel(Container container, JPanel customPanel) {
         // 首先尝试查找推送标签相关组件并在同一行添加
         Component pushTagsComponent = findPushTagsComponent(container);
         if (pushTagsComponent != null && pushTagsComponent.getParent() instanceof Container) {
@@ -259,7 +249,7 @@ public class PushDialogExtension implements StartupActivity {
         return false;
     }
     
-    private Component findPushTagsComponent(Container container) {
+    private static Component findPushTagsComponent(Container container) {
         // 查找包含"Push tags"或类似文本的组件
         for (Component component : container.getComponents()) {
             if (component instanceof JCheckBox) {
@@ -286,7 +276,7 @@ public class PushDialogExtension implements StartupActivity {
         return null;
     }
     
-    private boolean addToMiddleArea(Container container, JPanel customPanel) {
+    private static boolean addToMiddleArea(Container container, JPanel customPanel) {
         // 查找中间的主要内容区域
         if (container.getLayout() instanceof BorderLayout) {
             BorderLayout layout = (BorderLayout) container.getLayout();
@@ -308,7 +298,7 @@ public class PushDialogExtension implements StartupActivity {
         return false;
     }
     
-    private boolean addToBottomSafely(Container container, JPanel customPanel) {
+    private static boolean addToBottomSafely(Container container, JPanel customPanel) {
         if (container.getLayout() instanceof BorderLayout) {
             BorderLayout layout = (BorderLayout) container.getLayout();
             // 只在SOUTH位置为空时添加
@@ -320,7 +310,7 @@ public class PushDialogExtension implements StartupActivity {
         return false;
     }
     
-    private boolean addToContainerBottom(Container container, JPanel customPanel) {
+    private static boolean addToContainerBottom(Container container, JPanel customPanel) {
         LayoutManager layout = container.getLayout();
         
         if (layout instanceof BorderLayout) {
@@ -339,7 +329,7 @@ public class PushDialogExtension implements StartupActivity {
         return false;
     }
     
-    private Component findButtonPanel(Container container) {
+    private static Component findButtonPanel(Container container) {
         for (Component component : container.getComponents()) {
             if (isButtonPanel(component)) {
                 return component;
@@ -354,7 +344,7 @@ public class PushDialogExtension implements StartupActivity {
         return null;
     }
     
-    private boolean isButtonPanel(Component component) {
+    private static boolean isButtonPanel(Component component) {
         if (!(component instanceof Container)) {
             return false;
         }
@@ -372,7 +362,7 @@ public class PushDialogExtension implements StartupActivity {
         return buttonCount >= 2;
     }
     
-    private int getComponentIndex(Container parent, Component component) {
+    private static int getComponentIndex(Container parent, Component component) {
         Component[] components = parent.getComponents();
         for (int i = 0; i < components.length; i++) {
             if (components[i] == component) {
@@ -384,7 +374,7 @@ public class PushDialogExtension implements StartupActivity {
     
     
     
-    private void printComponentStructure(Container container, int level) {
+    private static void printComponentStructure(Container container, int level) {
         String indent = "  ".repeat(level);
         System.out.println(indent + container.getClass().getSimpleName() + 
                           " [" + container.getLayout().getClass().getSimpleName() + "]");
@@ -398,71 +388,74 @@ public class PushDialogExtension implements StartupActivity {
         }
     }
     
-    private JPanel createCustomPanel(Project project) {
+    private static JPanel createCustomPanel(Project project) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         panel.setBorder(JBUI.Borders.empty(0, 5, 0, 5)); // 移除分隔符，只保留左右边距
         panel.setOpaque(false); // 透明背景，更好地与原始界面集成
         
         // 使用更小的字体和更紧凑的布局
-        myPushToBranchCheckBox = new NonFocusableCheckBox("推送到分支：");
-        myPushToBranchCheckBox.setSelected(false); // 默认不选中
+        JCheckBox pushToBranchCheckBox = new NonFocusableCheckBox("推送到分支：");
+        pushToBranchCheckBox.setSelected(false); // 默认不选中
         
         // 创建分支选择下拉框
-        myBranchComboBox = new JComboBox<>();
-        myBranchComboBox.setEditable(false); // 不可编辑，只能选择
-        myBranchComboBox.setEnabled(myPushToBranchCheckBox.isSelected());
-        myBranchComboBox.setPreferredSize(new Dimension(200, myBranchComboBox.getPreferredSize().height));
+        JComboBox<String> branchComboBox = new JComboBox<>();
+        branchComboBox.setEditable(false); // 不可编辑，只能选择
+        branchComboBox.setEnabled(pushToBranchCheckBox.isSelected());
+        branchComboBox.setPreferredSize(new Dimension(200, branchComboBox.getPreferredSize().height));
         
         // 设置自定义渲染器
-        setupBranchComboBoxRenderer();
+        setupBranchComboBoxRenderer(branchComboBox);
+        
+        // 获取项目设置
+        ProjectAutoMergeSettings settings = ProjectAutoMergeSettings.getInstance(project);
         
         // 获取本地分支列表并填充下拉框
         if (project != null && !project.isDisposed()) {
-            populateLocalBranches(project);
+            populateLocalBranches(project, branchComboBox, settings);
         } else {
             System.out.println("项目为空或已销毁，跳过分支列表填充");
             // 添加空选项作为默认
-            myBranchComboBox.addItem("");
+            branchComboBox.addItem("");
         }
         
-        myPushToBranchCheckBox.addActionListener(e -> {
-            myBranchComboBox.setEnabled(myPushToBranchCheckBox.isSelected());
+        pushToBranchCheckBox.addActionListener(e -> {
+            branchComboBox.setEnabled(pushToBranchCheckBox.isSelected());
             // 更新静态状态
-            lastPushToBranchState = myPushToBranchCheckBox.isSelected();
-            if (myPushToBranchCheckBox.isSelected()) {
-                String selectedBranch = (String) myBranchComboBox.getSelectedItem();
+            lastPushToBranchState = pushToBranchCheckBox.isSelected();
+            if (pushToBranchCheckBox.isSelected()) {
+                String selectedBranch = (String) branchComboBox.getSelectedItem();
                 if (selectedBranch != null && !selectedBranch.trim().isEmpty()) {
-                    mySettings.setLastUsedBranch(selectedBranch.trim());
+                    settings.setLastUsedBranch(selectedBranch.trim());
                     lastSelectedBranch = selectedBranch.trim();
                 }
             }
         });
         
-        myBranchComboBox.addActionListener(e -> {
-            if (myBranchComboBox.getSelectedItem() != null) {
-                String selectedBranch = (String) myBranchComboBox.getSelectedItem();
+        branchComboBox.addActionListener(e -> {
+            if (branchComboBox.getSelectedItem() != null) {
+                String selectedBranch = (String) branchComboBox.getSelectedItem();
                 if (!selectedBranch.trim().isEmpty()) {
-                    mySettings.setLastUsedBranch(selectedBranch.trim());
+                    settings.setLastUsedBranch(selectedBranch.trim());
                     // 更新静态状态
                     lastSelectedBranch = selectedBranch.trim();
                 }
             }
         });
         
-        panel.add(myPushToBranchCheckBox);
-        panel.add(myBranchComboBox);
+        panel.add(pushToBranchCheckBox);
+        panel.add(branchComboBox);
         
         // 初始化静态状态
-        lastPushToBranchState = myPushToBranchCheckBox.isSelected();
-        if (myBranchComboBox.getSelectedItem() != null) {
-            String selectedItem = (String) myBranchComboBox.getSelectedItem();
+        lastPushToBranchState = pushToBranchCheckBox.isSelected();
+        if (branchComboBox.getSelectedItem() != null) {
+            String selectedItem = (String) branchComboBox.getSelectedItem();
             lastSelectedBranch = selectedItem != null ? selectedItem.trim() : "";
         }
         
         return panel;
     }
     
-    private void populateLocalBranches(Project project) {
+    private static void populateLocalBranches(Project project, JComboBox<String> branchComboBox, ProjectAutoMergeSettings settings) {
         try {
             if (project == null) {
                 System.out.println("项目为空，无法获取分支列表");
@@ -517,44 +510,38 @@ public class PushDialogExtension implements StartupActivity {
             
             System.out.println("总共找到 " + localBranches.size() + " 个本地分支");
             
-            // 将所有分支保存到全局列表用于搜索
-            allBranches.clear();
-            allBranches.addAll(localBranches.stream().sorted().collect(java.util.stream.Collectors.toList()));
-            
             // 清空并填充下拉框
-            myBranchComboBox.removeAllItems();
-            myBranchComboBox.addItem(""); // 添加空选项
+            branchComboBox.removeAllItems();
+            branchComboBox.addItem(""); // 添加空选项
             
-            allBranches.forEach(branch -> {
+            localBranches.stream().sorted().forEach(branch -> {
                 System.out.println("添加分支到下拉框：" + branch);
-                myBranchComboBox.addItem(branch);
+                branchComboBox.addItem(branch);
             });
             
-            System.out.println("下拉框总共有 " + myBranchComboBox.getItemCount() + " 个选项");
+            System.out.println("下拉框总共有 " + branchComboBox.getItemCount() + " 个选项");
             
             // 设置默认选中项（上次选择的分支）
-            String lastUsedBranch = mySettings.getLastUsedBranch();
+            String lastUsedBranch = settings.getLastUsedBranch();
             if (lastUsedBranch != null && !lastUsedBranch.trim().isEmpty()) {
-                myBranchComboBox.setSelectedItem(lastUsedBranch.trim());
+                branchComboBox.setSelectedItem(lastUsedBranch.trim());
                 System.out.println("设置默认选中分支：" + lastUsedBranch.trim());
             } else {
-                myBranchComboBox.setSelectedIndex(0); // 选择空选项
+                branchComboBox.setSelectedIndex(0); // 选择空选项
                 System.out.println("设置默认选中空选项");
             }
             
             // 确保下拉框不会自动弹出
-            myBranchComboBox.hidePopup();
+            branchComboBox.hidePopup();
             
         } catch (Exception e) {
             System.err.println("填充本地分支列表失败：" + e.getMessage());
             e.printStackTrace();
             // 如果获取失败，只显示空选项
-            allBranches.clear();
-            
-            myBranchComboBox.removeAllItems();
-            myBranchComboBox.addItem(""); // 发生错误时只添加空选项
-            myBranchComboBox.setSelectedIndex(0);
-            myBranchComboBox.hidePopup();
+            branchComboBox.removeAllItems();
+            branchComboBox.addItem(""); // 发生错误时只添加空选项
+            branchComboBox.setSelectedIndex(0);
+            branchComboBox.hidePopup();
         }
     }
     
@@ -659,11 +646,11 @@ public class PushDialogExtension implements StartupActivity {
         return null;
     }
     
-    private void setupBranchComboBoxRenderer() {
-        if (myBranchComboBox == null) return;
+    private static void setupBranchComboBoxRenderer(JComboBox<String> branchComboBox) {
+        if (branchComboBox == null) return;
         
         // 设置自定义渲染器以更好地显示分支名称
-        myBranchComboBox.setRenderer(new DefaultListCellRenderer() {
+        branchComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                     boolean isSelected, boolean cellHasFocus) {
@@ -681,5 +668,5 @@ public class PushDialogExtension implements StartupActivity {
         });
     }
     
-    private final java.util.List<String> allBranches = new java.util.ArrayList<>();
+    
 }
