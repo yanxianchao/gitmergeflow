@@ -40,7 +40,8 @@
         <!-- 通知组配置 -->
         <notificationGroup id="GitMergeFlow通知" displayType="BALLOON"/>
         <!-- 应用级服务 - 全局初始化 -->
-        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.components.GlobalAWTListenerService" preload="true"/>
+        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.components.GlobalAWTListenerService"
+                            preload="true"/>
 
     </extensions>
 
