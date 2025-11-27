@@ -1,10 +1,11 @@
 package com.github.yanxianchao.gitmergeflow.services;
 
-import com.github.yanxianchao.gitmergeflow.push.AutoPushStateContainer;
+import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import git4idea.GitUtil;
 import git4idea.commands.Git;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GitMergeService {
     
+    private static final Logger LOG = Logger.getInstance(GitMergeService.class);
     private static final String NOTIFICATION_GROUP_ID = "GitMergeFlow通知";
     
     public static void performAutoMerge(@NotNull Project project, @NotNull String targetBranch) {
@@ -45,7 +47,7 @@ public class GitMergeService {
                     fetchHandler.addParameters("origin", targetBranch);
                     git.runCommand(fetchHandler);
                 } catch (Exception fetchException) {
-                    System.out.println("获取远程分支失败，继续执行：" + fetchException.getMessage());
+                    LOG.warn("获取远程分支失败，继续执行", fetchException);
                 }
                 
                 // 为了安全起见，使用本地合并方式
@@ -88,7 +90,7 @@ public class GitMergeService {
                                 NotificationType.WARNING);
                         }
                     }
-                    AutoPushStateContainer.getInstance().setPushToBranchEnabled(project, false);
+                    ApplicationManager.getApplication().getService(ConfigurationManager.class).disableAutoPush(project);
                 }
                 
             } catch (Exception e) {
@@ -135,7 +137,7 @@ public class GitMergeService {
             // 如果目标分支的最新提交就是共同祖先，说明目标分支没有新提交，可以快进合并
             boolean canFastForward = targetCommit.equals(mergeBase);
             
-            System.out.println(String.format("快进合并检查 - 当前分支: %s (%s), 目标分支: %s (%s), 共同祖先: %s, 可快进: %s", 
+            LOG.info(String.format("快进合并检查 - 当前分支: %s (%s), 目标分支: %s (%s), 共同祖先: %s, 可快进: %s", 
                 currentBranch, currentCommit.substring(0, 8), 
                 targetBranch, targetCommit.substring(0, 8), 
                 mergeBase.substring(0, 8), canFastForward));
@@ -143,7 +145,7 @@ public class GitMergeService {
             return canFastForward;
             
         } catch (Exception e) {
-            System.out.println("快进合并检查失败：" + e.getMessage());
+            LOG.warn("快进合并检查失败", e);
             return false;
         }
     }
@@ -186,7 +188,7 @@ public class GitMergeService {
                     fetchHandler.addParameters("origin");
                     git.runCommand(fetchHandler);
                 } catch (Exception fetchException) {
-                    System.out.println("获取远程引用失败，继续执行：" + fetchException.getMessage());
+                    LOG.warn("获取远程引用失败，继续执行", fetchException);
                 }
                 
                 // 执行快进合并：直接推送当前分支到目标分支
@@ -230,15 +232,15 @@ public class GitMergeService {
                 
                 // 尝试快进合并
                 if (canFastForwardMerge(project, currentBranch, targetBranch)) {
-                    System.out.println("使用快进合并策略");
+                    LOG.info("使用快进合并策略");
                     performFastForwardMerge(project, currentBranch, targetBranch);
                 } else {
-                    System.out.println("快进合并不可用，使用常规合并策略");
+                    LOG.info("快进合并不可用，使用常规合并策略");
                     performAutoMerge(project, targetBranch);
                 }
                 
             } catch (Exception e) {
-                System.out.println("智能合并策略选择失败，回退到常规合并：" + e.getMessage());
+                LOG.warn("智能合并策略选择失败，回退到常规合并：" + e.getMessage());
                 performAutoMerge(project, targetBranch);
             }
         });

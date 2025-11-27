@@ -39,14 +39,16 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 通知组配置 -->
         <notificationGroup id="GitMergeFlow通知" displayType="BALLOON"/>
-        <!-- 应用级服务 - 全局初始化 -->
-        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.components.GlobalAWTListenerService"
-                            preload="true"/>
+        <!-- 配置管理服务 -->
+        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.core.ConfigurationManager"/>
+        
+        <!-- 启动监听器 - 确保服务初始化 -->
+        <postStartupActivity implementation="com.github.yanxianchao.gitmergeflow.components.PluginStartupListener"/>
 
     </extensions>
 
     <projectListeners>
-        <listener class="com.github.yanxianchao.gitmergeflow.push.PushInterceptor"
+        <listener class="com.github.yanxianchao.gitmergeflow.infrastructure.PushInterceptor"
                   topic="git4idea.push.GitPushListener"/>
     </projectListeners>
 </idea-plugin>
