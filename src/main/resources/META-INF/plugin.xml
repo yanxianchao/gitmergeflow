@@ -37,16 +37,12 @@
     <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- 启动活动配置 -->
-        <postStartupActivity 
-            implementation="com.github.yanxianchao.gitmergeflow.push.PushDialogExtension"/>
-        
         <!-- 通知组配置 -->
         <notificationGroup id="GitMergeFlow通知" displayType="BALLOON"/>
+        <!-- 应用级服务 - 全局初始化 -->
+        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.components.GlobalAWTListenerService" preload="true"/>
+
     </extensions>
-    
-    <actions>
-    </actions>
 
     <projectListeners>
         <listener class="com.github.yanxianchao.gitmergeflow.push.PushInterceptor"
