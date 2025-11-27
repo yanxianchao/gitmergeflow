@@ -10,7 +10,7 @@ public class PushDialogExtension implements ProjectActivity {
 
     @Override
     public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
-        PushDialogManager.getInstance();
+        GMFApplication.run();
         System.out.println("推送对话框扩展：为项目初始化活动 - " + project.getName());
         return Unit.INSTANCE;
     }

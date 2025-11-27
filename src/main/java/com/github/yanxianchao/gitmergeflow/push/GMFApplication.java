@@ -9,21 +9,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 
-public class PushDialogManager {
+public class GMFApplication {
 
-    private static final PushDialogManager INSTANCE = new PushDialogManager();
+    private static final GMFApplication INSTANCE = new GMFApplication();
 
     public static final String CUSTOM_COMPONENT_NAME = "AutoMergePushOptions";
 
     private volatile boolean initialized = false;
 
-    private PushDialogManager() {
+    private GMFApplication() {
     }
 
-    public static PushDialogManager getInstance() {
+    public static void run() {
         if (!INSTANCE.initialized)
             INSTANCE.initializeGlobalListener();
-        return INSTANCE;
     }
 
     private void initializeGlobalListener() {
