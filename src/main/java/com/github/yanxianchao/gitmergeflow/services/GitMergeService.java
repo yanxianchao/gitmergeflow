@@ -1,5 +1,6 @@
 package com.github.yanxianchao.gitmergeflow.services;
 
+import com.github.yanxianchao.gitmergeflow.push.AutoPushStateContainer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -87,6 +88,7 @@ public class GitMergeService {
                                 NotificationType.WARNING);
                         }
                     }
+                    AutoPushStateContainer.getInstance().setPushToBranchEnabled(project, false);
                 }
                 
             } catch (Exception e) {

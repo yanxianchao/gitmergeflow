@@ -1,7 +1,7 @@
 package com.github.yanxianchao.gitmergeflow.push;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.NonFocusableCheckBox;
 import com.intellij.util.ui.JBUI;
 
@@ -12,6 +12,8 @@ import java.awt.event.WindowEvent;
 public class PushDialogManager {
 
     private static final PushDialogManager INSTANCE = new PushDialogManager();
+
+    public static final String CUSTOM_COMPONENT_NAME = "AutoMergePushOptions";
 
     private volatile boolean initialized = false;
 
@@ -37,7 +39,7 @@ public class PushDialogManager {
             if (title == null || !title.startsWith("Push Commits to "))
                 return;
             SwingUtilities.invokeLater(() -> {
-                Project currentProject = getCurrentActiveProject(dialog);
+                Project currentProject = ProjectHelper.getCurrentActiveProject(dialog);
                 if (currentProject != null && !currentProject.isDisposed() && !hasCustomComponent(dialog)) {
                     System.out.println("发现推送对话框：" + title + "，项目：" + currentProject.getName());
                     addCustomComponentToDialog(dialog, currentProject);
@@ -48,49 +50,8 @@ public class PushDialogManager {
         System.out.println("已初始化全局AWT事件监听器");
     }
 
-    public Project getCurrentActiveProject() {
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length > 0) {
-            return openProjects[openProjects.length - 1];
-        }
-        return null;
-    }
-
-    private Project getCurrentActiveProject(JDialog dialog) {
-        Window owner = dialog.getOwner();
-        if (owner != null) {
-            if (owner instanceof Frame frame) {
-                String title = frame.getTitle();
-                if (title != null) {
-                    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-                        if (title.contains(project.getName())) {
-                            return project;
-                        }
-                    }
-                }
-            }
-        }
-        return getCurrentActiveProject();
-    }
-
     private boolean hasCustomComponent(JDialog dialog) {
-        return (findComponentByName(dialog, "AutoMergePushOptions") != null
-                || findComponentWithText(dialog, "推送到分支：") != null);
-    }
-
-    private Component findComponentWithText(Container container, String text) {
-        for (Component component : container.getComponents()) {
-            if (component instanceof JCheckBox checkBox) {
-                if (text.equals(checkBox.getText()))
-                    return component;
-            }
-            if (component instanceof Container) {
-                Component found = findComponentWithText((Container) component, text);
-                if (found != null)
-                    return found;
-            }
-        }
-        return null;
+        return (findComponentByName(dialog, CUSTOM_COMPONENT_NAME) != null);
     }
 
     private Component findComponentByName(Container container, String name) {
@@ -113,7 +74,7 @@ public class PushDialogManager {
             System.out.println("尝试向对话框添加自定义组件：" + dialog.getTitle());
 
             JPanel customPanel = createCustomPanel(project);
-            customPanel.setName("AutoMergePushOptions");
+            customPanel.setName(CUSTOM_COMPONENT_NAME);
 
             Container contentPane = dialog.getContentPane();
             DialogComponentAdder adder = new DialogComponentAdder();
@@ -126,7 +87,6 @@ public class PushDialogManager {
                 System.out.println("成功向推送对话框添加自定义组件");
             } else {
                 System.out.println("未能找到适合的容器来放置自定义组件");
-                printComponentStructure(contentPane, 0);
             }
 
         } catch (Exception e) {
@@ -140,7 +100,7 @@ public class PushDialogManager {
         panel.setOpaque(false);
 
         JCheckBox pushToBranchCheckBox = new NonFocusableCheckBox("推送到分支：");
-        JComboBox<String> branchComboBox = new JComboBox<>();
+        JComboBox<String> branchComboBox = new ComboBox<>();
 
         setupComponents(pushToBranchCheckBox, branchComboBox, project);
 
@@ -151,7 +111,7 @@ public class PushDialogManager {
     }
 
     private void setupComponents(JCheckBox checkBox, JComboBox<String> comboBox, Project project) {
-        ProjectPushStateManager stateManager = ProjectPushStateManager.getInstance();
+        AutoPushStateContainer stateManager = AutoPushStateContainer.getInstance();
 
         // 初始化状态
         checkBox.setSelected(stateManager.isPushToBranchEnabled(project));
@@ -183,56 +143,5 @@ public class PushDialogManager {
                 }
             }
         });
-    }
-
-    private void printComponentStructure(Container container, int level) {
-        String indent = "  ".repeat(level);
-        System.out.println(indent + container.getClass().getSimpleName() +
-                " [" + container.getLayout().getClass().getSimpleName() + "]");
-
-        for (Component component : container.getComponents()) {
-            if (component instanceof Container) {
-                printComponentStructure((Container) component, level + 1);
-            } else {
-                System.out.println(indent + "  " + component.getClass().getSimpleName());
-            }
-        }
-    }
-
-    public JCheckBox findCheckboxInDialog(Container container) {
-        for (Component component : container.getComponents()) {
-            if (component instanceof JCheckBox checkBox) {
-                if ("推送到分支：".equals(checkBox.getText())) {
-                    return checkBox;
-                }
-            }
-            if (component instanceof Container) {
-                JCheckBox found = findCheckboxInDialog((Container) component);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
-    }
-
-    public JComboBox<String> findComboBoxInDialog(Container container) {
-        for (Component component : container.getComponents()) {
-            if (component instanceof JComboBox) {
-                @SuppressWarnings("unchecked")
-                JComboBox<String> comboBox = (JComboBox<String>) component;
-                Container parent = comboBox.getParent();
-                if (parent != null && findCheckboxInDialog(parent) != null) {
-                    return comboBox;
-                }
-            }
-            if (component instanceof Container) {
-                JComboBox<String> found = findComboBoxInDialog((Container) component);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
     }
 }

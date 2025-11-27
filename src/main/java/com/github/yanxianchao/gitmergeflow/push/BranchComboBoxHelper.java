@@ -110,7 +110,7 @@ public class BranchComboBoxHelper {
     }
     
     private static void setDefaultSelection(Project project, JComboBox<String> branchComboBox) {
-        ProjectPushStateManager stateManager = ProjectPushStateManager.getInstance();
+        AutoPushStateContainer stateManager = AutoPushStateContainer.getInstance();
         String lastSelectedBranch = stateManager.getLastSelectedBranch(project);
         
         if (lastSelectedBranch != null && !lastSelectedBranch.trim().isEmpty()) {

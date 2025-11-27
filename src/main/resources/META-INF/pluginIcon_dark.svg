@@ -1,50 +1,24 @@
 <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <!-- 暗色主题渐变定义 -->
-    <linearGradient id="primaryGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#8AB4F8;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#4285F4;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="accentGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#81C995;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#34A853;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="mergeGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="backgroundGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#FF8A65;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#FF6D01;stop-opacity:1" />
     </linearGradient>
     <!-- 暗色主题阴影滤镜 -->
     <filter id="shadowDark" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
     </filter>
   </defs>
   
   <!-- 暗色背景圆形 -->
-  <circle cx="20" cy="20" r="18" fill="#FF6D01" stroke="#E8710A" stroke-width="1" filter="url(#shadowDark)"/>
+  <circle cx="20" cy="20" r="18" fill="url(#backgroundGradientDark)" filter="url(#shadowDark)"/>
   
-  <!-- Git分支图标 -->
-  <!-- 主分支 -->
-  <line x1="6" y1="20" x2="34" y2="20" stroke="#000000" stroke-width="1.8" stroke-linecap="round"/>
-  
-  <!-- 特性分支 -->
-  <path d="M 10 20 C 12 15, 16 12, 20 12 C 24 12, 28 15, 30 20" 
-        stroke="#000000" 
-        stroke-width="1.8" 
-        fill="none" 
-        stroke-linecap="round"/>
-  
-  <!-- 节点点 -->
-  <circle cx="10" cy="20" r="2" fill="#000000"/>
-  <circle cx="20" cy="12" r="2" fill="#000000"/>
-  <circle cx="30" cy="20" r="2" fill="#000000"/>
-  
-  <!-- 合并箭头 -->
-  <path d="M 31 18 L 34 20 L 31 22" 
-        stroke="#000000" 
-        stroke-width="1.5" 
-        fill="none" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"/>
-  
+  <!-- GMF 文字 -->
+  <text x="20" y="26" text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-size="14" 
+        font-weight="bold" 
+        fill="#000000">GMF</text>
   
 </svg>
