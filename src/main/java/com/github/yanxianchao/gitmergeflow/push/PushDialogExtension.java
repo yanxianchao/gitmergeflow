@@ -18,9 +18,13 @@ import java.awt.event.WindowEvent;
 public class PushDialogExtension implements ProjectActivity {
 
 
-    // 静态变量用于保存推送时的状态
-    private static volatile boolean lastPushToBranchState = false;
-    private static volatile String lastSelectedBranch = "";
+    // 项目级别的状态管理
+    private static class ProjectPushState {
+        volatile boolean lastPushToBranchState = false;
+        volatile String lastSelectedBranch = "";
+    }
+    
+    private static final java.util.Map<String, ProjectPushState> projectStates = new java.util.concurrent.ConcurrentHashMap<>();
 
     {
         // 使用全局单例的AWT事件监听器
@@ -58,6 +62,22 @@ public class PushDialogExtension implements ProjectActivity {
         System.out.println("已初始化全局AWT事件监听器");
     }
 
+    private static ProjectPushState getProjectState(Project project) {
+        if (project == null) {
+            return new ProjectPushState();
+        }
+        String projectKey = project.getLocationHash();
+        return projectStates.computeIfAbsent(projectKey, k -> new ProjectPushState());
+    }
+    
+    private static Project getCurrentActiveProject() {
+        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+        if (openProjects.length > 0) {
+            return openProjects[openProjects.length - 1];
+        }
+        return null;
+    }
+
     private static Project getCurrentActiveProject(JDialog dialog) {
         // 方法1：通过对话框的父窗口查找项目
         Window owner = dialog.getOwner();
@@ -77,11 +97,7 @@ public class PushDialogExtension implements ProjectActivity {
         }
 
         // 方法2：获取最后一个活动的项目（作为备选）
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length > 0)
-            // 返回最后打开的项目
-            return openProjects[openProjects.length - 1];
-        return null;
+        return getCurrentActiveProject();
     }
 
 
@@ -363,12 +379,13 @@ public class PushDialogExtension implements ProjectActivity {
 
         pushToBranchCheckBox.addActionListener(e -> {
             branchComboBox.setEnabled(pushToBranchCheckBox.isSelected());
-            // 更新静态状态
-            lastPushToBranchState = pushToBranchCheckBox.isSelected();
+            // 更新项目级别的状态
+            ProjectPushState state = getProjectState(project);
+            state.lastPushToBranchState = pushToBranchCheckBox.isSelected();
             if (pushToBranchCheckBox.isSelected()) {
                 String selectedBranch = (String) branchComboBox.getSelectedItem();
                 if (selectedBranch != null && !selectedBranch.trim().isEmpty()) {
-                    lastSelectedBranch = selectedBranch.trim();
+                    state.lastSelectedBranch = selectedBranch.trim();
                 }
             }
         });
@@ -377,8 +394,9 @@ public class PushDialogExtension implements ProjectActivity {
             if (branchComboBox.getSelectedItem() != null) {
                 String selectedBranch = (String) branchComboBox.getSelectedItem();
                 if (!selectedBranch.trim().isEmpty()) {
-                    // 更新静态状态
-                    lastSelectedBranch = selectedBranch.trim();
+                    // 更新项目级别的状态
+                    ProjectPushState state = getProjectState(project);
+                    state.lastSelectedBranch = selectedBranch.trim();
                 }
             }
         });
@@ -386,11 +404,13 @@ public class PushDialogExtension implements ProjectActivity {
         panel.add(pushToBranchCheckBox);
         panel.add(branchComboBox);
 
-        // 初始化静态状态
-        lastPushToBranchState = pushToBranchCheckBox.isSelected();
+        // 初始化项目级别的状态
+        ProjectPushState state = getProjectState(project);
+        pushToBranchCheckBox.setSelected(state.lastPushToBranchState);
+        branchComboBox.setEnabled(state.lastPushToBranchState);
         if (branchComboBox.getSelectedItem() != null) {
             String selectedItem = (String) branchComboBox.getSelectedItem();
-            lastSelectedBranch = selectedItem != null ? selectedItem.trim() : "";
+            state.lastSelectedBranch = selectedItem != null ? selectedItem.trim() : "";
         }
 
         return panel;
@@ -415,11 +435,6 @@ public class PushDialogExtension implements ProjectActivity {
                 repositoryManager = git4idea.repo.GitRepositoryManager.getInstance(project);
             } catch (Exception e) {
                 System.out.println("无法获取Git仓库管理器：" + e.getMessage());
-                return;
-            }
-
-            if (repositoryManager == null) {
-                System.out.println("Git仓库管理器为空");
                 return;
             }
 
@@ -463,9 +478,10 @@ public class PushDialogExtension implements ProjectActivity {
             System.out.println("下拉框总共有 " + branchComboBox.getItemCount() + " 个选项");
 
             // 设置默认选中项（上次选择的分支）
-            if (lastSelectedBranch != null && !lastSelectedBranch.trim().isEmpty()) {
-                branchComboBox.setSelectedItem(lastSelectedBranch.trim());
-                System.out.println("设置默认选中分支：" + lastSelectedBranch.trim());
+            ProjectPushState state = getProjectState(project);
+            if (state.lastSelectedBranch != null && !state.lastSelectedBranch.trim().isEmpty()) {
+                branchComboBox.setSelectedItem(state.lastSelectedBranch.trim());
+                System.out.println("设置默认选中分支：" + state.lastSelectedBranch.trim());
             } else {
                 branchComboBox.setSelectedIndex(0); // 选择空选项
                 System.out.println("设置默认选中空选项");
@@ -485,27 +501,41 @@ public class PushDialogExtension implements ProjectActivity {
     }
 
     public static boolean shouldPushToBranch() {
+        Project currentProject = getCurrentActiveProject();
+        if (currentProject == null) {
+            return false;
+        }
+        
         // 首先尝试从当前活动的对话框获取状态
         boolean currentState = getCurrentCheckboxState();
         if (currentState) {
             // 如果找到了活动状态，保存并返回
-            lastPushToBranchState = true;
+            ProjectPushState state = getProjectState(currentProject);
+            state.lastPushToBranchState = true;
             return true;
         }
         // 如果没有找到活动对话框，返回最后保存的状态
-        return lastPushToBranchState;
+        ProjectPushState state = getProjectState(currentProject);
+        return state.lastPushToBranchState;
     }
 
     public static String getBranchName() {
+        Project currentProject = getCurrentActiveProject();
+        if (currentProject == null) {
+            return "";
+        }
+        
         // 首先尝试从当前活动的对话框获取分支名
         String currentBranch = getCurrentBranchName();
         if (!currentBranch.trim().isEmpty()) {
             // 如果找到了分支名，保存并返回
-            lastSelectedBranch = currentBranch.trim();
-            return lastSelectedBranch;
+            ProjectPushState state = getProjectState(currentProject);
+            state.lastSelectedBranch = currentBranch.trim();
+            return state.lastSelectedBranch;
         }
         // 如果没有找到活动对话框，返回最后保存的分支名
-        return lastSelectedBranch;
+        ProjectPushState state = getProjectState(currentProject);
+        return state.lastSelectedBranch;
     }
 
     private static boolean getCurrentCheckboxState() {
