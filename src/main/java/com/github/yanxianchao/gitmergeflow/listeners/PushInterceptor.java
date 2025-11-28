@@ -24,7 +24,7 @@ public class PushInterceptor implements git4idea.push.GitPushListener {
         PushConfiguration config = configManager.getConfiguration(repository.getProject());
 
         if (!config.hasValidTargetBranch()) {
-            LOG.info("自动合并检查 - 未启用或未选择分支。");
+            LOG.info("自动合并检查 - 未启用或未选择分支");
             return;
         }
 
