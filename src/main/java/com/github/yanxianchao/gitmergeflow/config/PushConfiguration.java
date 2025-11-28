@@ -16,9 +16,9 @@ public final class PushConfiguration {
         this.enableAutoPush = enableAutoPush;
         this.targetBranch = targetBranch != null ? targetBranch.trim() : "";
     }
-    
-    public static PushConfiguration disabled() {
-        return new PushConfiguration(false, null);
+
+    public static PushConfiguration disabled(String targetBranch) {
+        return new PushConfiguration(false, targetBranch);
     }
     
     public static PushConfiguration enabled(@NotNull String targetBranch) {
