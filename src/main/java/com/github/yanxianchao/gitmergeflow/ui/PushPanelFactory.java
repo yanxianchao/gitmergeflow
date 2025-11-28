@@ -2,9 +2,7 @@ package com.github.yanxianchao.gitmergeflow.ui;
 
 import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
 import com.github.yanxianchao.gitmergeflow.domain.PushConfiguration;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.NonFocusableCheckBox;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -19,42 +17,30 @@ public final class PushPanelFactory {
 
     private final ConfigurationManager configManager;
 
-    public PushPanelFactory() {
-        this.configManager = ApplicationManager.getApplication().getService(ConfigurationManager.class);
+    public PushPanelFactory(@NotNull ConfigurationManager configManager) {
+        this.configManager = configManager;
     }
 
     @NotNull
-    public JPanel createPushPanel(@NotNull Project project) {
-        // 创建UI组件
+    public JPanel createPushPanel(@NotNull Project project, @NotNull String componentName) {
+        PushConfiguration config = configManager.getConfiguration(project);
+        // 创建组件
         JCheckBox enableCheckBox = new NonFocusableCheckBox("推送到分支：");
-        JComboBox<String> branchComboBox = new ComboBox<>();
-        // 初始化UI组件
-        setupComponents(enableCheckBox, branchComboBox, project);
-
+        JComboBox<String> branchComboBox = BranchComboBoxFactory.createBranchComboBox(project, config.getTargetBranch());
+        // 初始化状态
+        enableCheckBox.setSelected(config.isEnabled());
+        branchComboBox.setEnabled(config.isEnabled());
+        // 绑定事件
+        enableCheckBox.addActionListener(e -> handleCheckBoxChange(enableCheckBox, branchComboBox, project));
+        branchComboBox.addActionListener(e -> handleBranchSelection(enableCheckBox, branchComboBox, project));
+        // 创建面板
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         panel.setBorder(JBUI.Borders.empty(0, 5));
         panel.setOpaque(false);
+        panel.setName(componentName);
         panel.add(enableCheckBox);
         panel.add(branchComboBox);
         return panel;
-    }
-
-    private void setupComponents(@NotNull JCheckBox checkBox,
-                                 @NotNull JComboBox<String> comboBox,
-                                 @NotNull Project project) {
-        PushConfiguration config = configManager.getConfiguration(project);
-        // 初始化状态
-        checkBox.setSelected(config.isEnabled());
-        comboBox.setEnabled(config.isEnabled());
-        comboBox.setEditable(false);
-        comboBox.setPreferredSize(new Dimension(200, comboBox.getPreferredSize().height));
-
-        // 设置分支数据
-        BranchComboBoxManager.setupBranchComboBox(comboBox, project, config.getTargetBranch());
-
-        // 绑定事件
-        checkBox.addActionListener(e -> handleCheckBoxChange(checkBox, comboBox, project));
-        comboBox.addActionListener(e -> handleBranchSelection(checkBox, comboBox, project));
     }
 
     private void handleCheckBoxChange(@NotNull JCheckBox checkBox,
