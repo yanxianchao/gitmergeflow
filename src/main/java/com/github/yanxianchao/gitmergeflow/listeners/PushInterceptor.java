@@ -20,7 +20,7 @@ public class PushInterceptor implements git4idea.push.GitPushListener {
     public void onCompleted(@NotNull GitRepository repository, @NotNull GitPushRepoResult result) {
         if (result.getType() != GitPushRepoResult.Type.SUCCESS) return;
 
-        ConfigurationManager configManager = ApplicationManager.getApplication().getService(ConfigurationManager.class);
+        ConfigurationManager configManager = ConfigurationManager.getInstance();
         PushConfiguration config = configManager.getConfiguration(repository.getProject());
 
         if (!config.hasValidTargetBranch()) {
