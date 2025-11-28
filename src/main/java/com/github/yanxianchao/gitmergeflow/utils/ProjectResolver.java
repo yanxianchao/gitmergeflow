@@ -1,4 +1,4 @@
-package com.github.yanxianchao.gitmergeflow.infrastructure;
+package com.github.yanxianchao.gitmergeflow.utils;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;

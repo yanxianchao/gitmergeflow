@@ -1,6 +1,6 @@
-package com.github.yanxianchao.gitmergeflow.services;
+package com.github.yanxianchao.gitmergeflow.git;
 
-import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
+import com.github.yanxianchao.gitmergeflow.config.ConfigurationManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -14,9 +14,9 @@ import git4idea.commands.GitLineHandler;
 import git4idea.repo.GitRepository;
 import org.jetbrains.annotations.NotNull;
 
-public class GitMergeService {
+public class GitMergeOperations {
     
-    private static final Logger LOG = Logger.getInstance(GitMergeService.class);
+    private static final Logger LOG = Logger.getInstance(GitMergeOperations.class);
     private static final String NOTIFICATION_GROUP_ID = "GitMergeFlow通知";
     
     public static void performAutoMerge(@NotNull Project project, @NotNull String targetBranch) {

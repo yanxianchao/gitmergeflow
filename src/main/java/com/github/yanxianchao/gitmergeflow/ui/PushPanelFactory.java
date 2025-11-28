@@ -1,7 +1,7 @@
 package com.github.yanxianchao.gitmergeflow.ui;
 
-import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
-import com.github.yanxianchao.gitmergeflow.domain.PushConfiguration;
+import com.github.yanxianchao.gitmergeflow.config.ConfigurationManager;
+import com.github.yanxianchao.gitmergeflow.config.PushConfiguration;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.NonFocusableCheckBox;
 import com.intellij.util.ui.JBUI;

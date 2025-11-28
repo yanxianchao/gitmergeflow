@@ -1,4 +1,4 @@
-package com.github.yanxianchao.gitmergeflow.domain;
+package com.github.yanxianchao.gitmergeflow.config;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

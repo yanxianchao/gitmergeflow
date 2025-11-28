@@ -1,7 +1,7 @@
 package com.github.yanxianchao.gitmergeflow.ui;
 
-import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
-import com.github.yanxianchao.gitmergeflow.infrastructure.ProjectResolver;
+import com.github.yanxianchao.gitmergeflow.config.ConfigurationManager;
+import com.github.yanxianchao.gitmergeflow.utils.ProjectResolver;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -12,22 +12,22 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 
 /**
- * 推送对话框增强器 - 负责在Git推送对话框中添加自定义功能
+ * Git推送对话框增强器 - 负责在Git推送对话框中添加自定义功能
  */
-public final class PushDialogEnhancer {
+public final class GitPushDialogEnhancer {
 
-    private static final Logger LOG = Logger.getInstance(PushDialogEnhancer.class);
-    private static final PushDialogEnhancer INSTANCE = new PushDialogEnhancer();
+    private static final Logger LOG = Logger.getInstance(GitPushDialogEnhancer.class);
+    private static final GitPushDialogEnhancer INSTANCE = new GitPushDialogEnhancer();
     private static final String COMPONENT_NAME = "GitMergeFlowPanel";
 
     private volatile boolean enhanced = false;
     private final PushPanelFactory panelFactory;
 
-    private PushDialogEnhancer() {
+    private GitPushDialogEnhancer() {
         panelFactory = new PushPanelFactory(ApplicationManager.getApplication().getService(ConfigurationManager.class));
     }
 
-    public static PushDialogEnhancer getInstance() {
+    public static GitPushDialogEnhancer getInstance() {
         return INSTANCE;
     }
 
@@ -71,10 +71,11 @@ public final class PushDialogEnhancer {
             return;
 
         try {
-            // 创建自定义面板
             JPanel customPanel = panelFactory.createPushPanel(project, COMPONENT_NAME);
-            // 添加自定义面板
-            if (DialogLayoutManager.addComponent(dialog.getContentPane(), customPanel)) {
+
+            boolean added = DialogLayoutManager.addComponent(dialog.getContentPane(), customPanel);
+
+            if (added) {
                 dialog.revalidate();
                 dialog.repaint();
             }

@@ -1,6 +1,6 @@
-package com.github.yanxianchao.gitmergeflow.core;
+package com.github.yanxianchao.gitmergeflow.config;
 
-import com.github.yanxianchao.gitmergeflow.domain.PushConfiguration;
+import com.github.yanxianchao.gitmergeflow.config.PushConfiguration;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
