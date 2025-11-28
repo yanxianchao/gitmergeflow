@@ -41,15 +41,6 @@ public class GitMergeOperations {
                 
                 Git git = Git.getInstance();
                 
-                // 首先从远程获取最新更改，确保我们有最新的引用
-                try {
-                    GitLineHandler fetchHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.FETCH);
-                    fetchHandler.addParameters("origin", targetBranch);
-                    git.runCommand(fetchHandler);
-                } catch (Exception fetchException) {
-                    LOG.warn("获取远程分支失败，继续执行", fetchException);
-                }
-                
                 // 为了安全起见，使用本地合并方式
                 boolean needsCheckoutBack = false;
                 try {
@@ -59,10 +50,31 @@ public class GitMergeOperations {
                     git.runCommand(checkoutHandler).throwOnError();
                     needsCheckoutBack = true;
                     
+                    // 拉取目标分支的最新更改
+                    try {
+                        GitLineHandler pullHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PULL);
+                        pullHandler.addParameters("origin", targetBranch);
+                        git.runCommand(pullHandler).throwOnError();
+                    } catch (Exception pullException) {
+                        needsCheckoutBack = false; // 发生冲突时不自动切换回原分支
+                        showNotification(project, 
+                            String.format("拉取目标分支 '%s' 时发生冲突，请手动解决冲突后继续操作", targetBranch), 
+                            NotificationType.WARNING);
+                        throw pullException;
+                    }
+                    
                     // 将当前分支合并到目标分支
-                    GitLineHandler mergeHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.MERGE);
-                    mergeHandler.addParameters(currentBranch);
-                    git.runCommand(mergeHandler).throwOnError();
+                    try {
+                        GitLineHandler mergeHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.MERGE);
+                        mergeHandler.addParameters(currentBranch);
+                        git.runCommand(mergeHandler).throwOnError();
+                    } catch (Exception mergeException) {
+                        needsCheckoutBack = false; // 发生冲突时不自动切换回原分支
+                        showNotification(project, 
+                            String.format("合并分支 '%s' 到 '%s' 时发生冲突，请手动解决冲突后继续操作", currentBranch, targetBranch), 
+                            NotificationType.WARNING);
+                        throw mergeException;
+                    }
                     
                     // 推送目标分支
                     GitLineHandler pushHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PUSH);
