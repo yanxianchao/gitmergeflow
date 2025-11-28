@@ -12,6 +12,6 @@ public class PluginStartupListener implements StartupActivity.DumbAware {
     
     @Override
     public void runActivity(@NotNull Project project) {
-        PushDialogEnhancer.getInstance().initialize();
+        PushDialogEnhancer.getInstance().enhance();
     }
 }
