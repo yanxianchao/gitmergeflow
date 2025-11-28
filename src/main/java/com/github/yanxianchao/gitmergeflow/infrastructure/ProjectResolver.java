@@ -13,8 +13,12 @@ import java.awt.*;
  */
 public final class ProjectResolver {
     
+    private ProjectResolver() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+    
     @Nullable
-    public Project resolveProject(@NotNull JDialog dialog) {
+    public static Project resolveProject(@NotNull JDialog dialog) {
         // 策略1: 通过对话框所有者窗口解析
         Project project = resolveFromOwnerWindow(dialog);
         if (project != null) return project;
@@ -24,13 +28,13 @@ public final class ProjectResolver {
     }
     
     @Nullable
-    public Project getCurrentActiveProject() {
+    public static Project getCurrentActiveProject() {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
         return openProjects.length > 0 ? openProjects[openProjects.length - 1] : null;
     }
     
     @Nullable
-    private Project resolveFromOwnerWindow(@NotNull JDialog dialog) {
+    private static Project resolveFromOwnerWindow(@NotNull JDialog dialog) {
         Window owner = dialog.getOwner();
         if (!(owner instanceof Frame frame)) return null;
         

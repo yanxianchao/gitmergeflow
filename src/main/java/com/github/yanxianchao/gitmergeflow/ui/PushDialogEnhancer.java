@@ -1,8 +1,6 @@
 package com.github.yanxianchao.gitmergeflow.ui;
 
-import com.github.yanxianchao.gitmergeflow.core.ConfigurationManager;
 import com.github.yanxianchao.gitmergeflow.infrastructure.ProjectResolver;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +19,10 @@ public final class PushDialogEnhancer {
     private static final String COMPONENT_NAME = "GitMergeFlowPanel";
 
     private volatile boolean enhanced = false;
-    private final ProjectResolver projectResolver;
     private final PushPanelFactory panelFactory;
 
     private PushDialogEnhancer() {
-        projectResolver = new ProjectResolver();
-        panelFactory = new PushPanelFactory(ApplicationManager.getApplication().getService(ConfigurationManager.class));
+        panelFactory = new PushPanelFactory();
     }
 
     public static PushDialogEnhancer getInstance() {
@@ -70,19 +66,14 @@ public final class PushDialogEnhancer {
     }
 
     private void enhanceDialog(@NotNull JDialog dialog) {
-        Project project = projectResolver.resolveProject(dialog);
+        Project project = ProjectResolver.resolveProject(dialog);
         if (project == null || project.isDisposed() || hasCustomComponent(dialog)) {
             return;
         }
-
         try {
             JPanel customPanel = panelFactory.createPushPanel(project);
             customPanel.setName(COMPONENT_NAME);
-
-            DialogLayoutManager layoutManager = new DialogLayoutManager();
-            boolean added = layoutManager.addComponent(dialog.getContentPane(), customPanel);
-
-            if (added) {
+            if (DialogLayoutManager.addComponent(dialog.getContentPane(), customPanel)) {
                 dialog.revalidate();
                 dialog.repaint();
             }

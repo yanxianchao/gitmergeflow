@@ -20,15 +20,19 @@ public final class BranchComboBoxManager {
     
     private static final Logger LOG = Logger.getInstance(BranchComboBoxManager.class);
     
-    public void setupBranchComboBox(@NotNull JComboBox<String> comboBox, 
-                                   @NotNull Project project, 
-                                   @Nullable String selectedBranch) {
+    private BranchComboBoxManager() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+    
+    public static void setupBranchComboBox(@NotNull JComboBox<String> comboBox, 
+                                          @NotNull Project project, 
+                                          @Nullable String selectedBranch) {
         setupRenderer(comboBox);
         populateBranches(comboBox, project);
         setSelectedBranch(comboBox, selectedBranch);
     }
     
-    private void setupRenderer(@NotNull JComboBox<String> comboBox) {
+    private static void setupRenderer(@NotNull JComboBox<String> comboBox) {
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -45,7 +49,7 @@ public final class BranchComboBoxManager {
         });
     }
     
-    private void populateBranches(@NotNull JComboBox<String> comboBox, @NotNull Project project) {
+    private static void populateBranches(@NotNull JComboBox<String> comboBox, @NotNull Project project) {
         comboBox.removeAllItems();
         comboBox.addItem(""); // 空选项
         
@@ -61,7 +65,7 @@ public final class BranchComboBoxManager {
     }
     
     @NotNull
-    private Set<String> collectLocalBranches(@NotNull Project project) {
+    private static Set<String> collectLocalBranches(@NotNull Project project) {
         Set<String> branches = new HashSet<>();
         
         if (project.isDisposed()) return branches;
@@ -82,7 +86,7 @@ public final class BranchComboBoxManager {
         return branches;
     }
     
-    private void setSelectedBranch(@NotNull JComboBox<String> comboBox, @Nullable String selectedBranch) {
+    private static void setSelectedBranch(@NotNull JComboBox<String> comboBox, @Nullable String selectedBranch) {
         if (selectedBranch != null && !selectedBranch.trim().isEmpty()) {
             comboBox.setSelectedItem(selectedBranch.trim());
         } else {

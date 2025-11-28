@@ -10,13 +10,17 @@ import java.awt.*;
  */
 public final class DialogLayoutManager {
     
-    public boolean addComponent(@NotNull Container container, @NotNull JPanel component) {
+    private DialogLayoutManager() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+    
+    public static boolean addComponent(@NotNull Container container, @NotNull JPanel component) {
         return tryAddAboveButtons(container, component) ||
                tryAddToMiddleArea(container, component) ||
                tryAddToBottom(container, component);
     }
     
-    private boolean tryAddAboveButtons(@NotNull Container container, @NotNull JPanel component) {
+    private static boolean tryAddAboveButtons(@NotNull Container container, @NotNull JPanel component) {
         // 首先尝试查找推送标签相关组件并在同一行添加
         Component pushTagsComponent = findPushTagsComponent(container);
         if (pushTagsComponent != null && pushTagsComponent.getParent() != null) {
@@ -56,7 +60,7 @@ public final class DialogLayoutManager {
         return false;
     }
     
-    private Component findPushTagsComponent(@NotNull Container container) {
+    private static Component findPushTagsComponent(@NotNull Container container) {
         for (Component component : container.getComponents()) {
             if (component instanceof JCheckBox checkBox) {
                 String text = checkBox.getText();
@@ -80,7 +84,7 @@ public final class DialogLayoutManager {
         return null;
     }
     
-    private boolean tryAddToMiddleArea(@NotNull Container container, @NotNull JPanel component) {
+    private static boolean tryAddToMiddleArea(@NotNull Container container, @NotNull JPanel component) {
         if (container.getLayout() instanceof BorderLayout layout) {
             Component center = layout.getLayoutComponent(BorderLayout.CENTER);
             if (center instanceof Container) {
@@ -96,7 +100,7 @@ public final class DialogLayoutManager {
         return false;
     }
     
-    private boolean tryAddToBottom(@NotNull Container container, @NotNull JPanel component) {
+    private static boolean tryAddToBottom(@NotNull Container container, @NotNull JPanel component) {
         if (container.getLayout() instanceof BorderLayout layout) {
             if (layout.getLayoutComponent(BorderLayout.SOUTH) == null) {
                 container.add(component, BorderLayout.SOUTH);
@@ -106,7 +110,7 @@ public final class DialogLayoutManager {
         return false;
     }
     
-    private boolean addToContainerBottom(@NotNull Container container, @NotNull JPanel component) {
+    private static boolean addToContainerBottom(@NotNull Container container, @NotNull JPanel component) {
         LayoutManager layout = container.getLayout();
         
         if (layout instanceof BorderLayout borderLayout) {
@@ -121,7 +125,7 @@ public final class DialogLayoutManager {
         return false;
     }
     
-    private Component findButtonPanel(@NotNull Container container) {
+    private static Component findButtonPanel(@NotNull Container container) {
         for (Component component : container.getComponents()) {
             if (isButtonPanel(component)) {
                 return component;
@@ -134,7 +138,7 @@ public final class DialogLayoutManager {
         return null;
     }
     
-    private boolean isButtonPanel(@NotNull Component component) {
+    private static boolean isButtonPanel(@NotNull Component component) {
         if (!(component instanceof Container container)) return false;
         
         int buttonCount = 0;
@@ -146,7 +150,7 @@ public final class DialogLayoutManager {
         return buttonCount >= 2;
     }
     
-    private int getComponentIndex(@NotNull Container parent, @NotNull Component component) {
+    private static int getComponentIndex(@NotNull Container parent, @NotNull Component component) {
         Component[] components = parent.getComponents();
         for (int i = 0; i < components.length; i++) {
             if (components[i] == component) {
