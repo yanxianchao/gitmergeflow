@@ -29,8 +29,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 通知组配置 -->
         <notificationGroup id="GitMergeFlow通知" displayType="BALLOON"/>
-        <!-- 配置管理服务 -->
-        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.config.ConfigurationManager"/>
         
         <!-- 启动监听器 - 确保服务初始化 -->
         <postStartupActivity implementation="com.github.yanxianchao.gitmergeflow.launcher.GitMergeFlowLauncher"/>

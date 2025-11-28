@@ -24,7 +24,7 @@ public final class GitPushDialogEnhancer {
     private final PushPanelFactory panelFactory;
 
     private GitPushDialogEnhancer() {
-        panelFactory = new PushPanelFactory(ApplicationManager.getApplication().getService(ConfigurationManager.class));
+        panelFactory = new PushPanelFactory(ConfigurationManager.getInstance());
     }
 
     public static GitPushDialogEnhancer getInstance() {

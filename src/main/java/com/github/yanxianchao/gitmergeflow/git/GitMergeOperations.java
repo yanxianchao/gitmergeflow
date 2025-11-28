@@ -102,7 +102,7 @@ public class GitMergeOperations {
                                 NotificationType.WARNING);
                         }
                     }
-                    ApplicationManager.getApplication().getService(ConfigurationManager.class).disableAutoPush(project);
+                    ConfigurationManager.getInstance().disableAutoPush(project);
                 }
                 
             } catch (Exception e) {
