@@ -28,9 +28,9 @@ public class PushInterceptor implements git4idea.push.GitPushListener {
             return;
         }
 
+        String currentBranch = repository.getCurrentBranchName();
         String targetBranch = config.getTargetBranch();
-        LOG.info("自动合并检查 - 启用: true, 目标分支: " + targetBranch);
-        LOG.info("开始执行自动合并到分支: " + targetBranch);
+        LOG.info("开始执行自动合并到分支, 当前分支: " + currentBranch + ", 目标分支: " + targetBranch);
 
         ApplicationManager.getApplication().invokeLater(() -> {
             GitMergeOperations.performAutoMerge(repository.getProject(), targetBranch);
