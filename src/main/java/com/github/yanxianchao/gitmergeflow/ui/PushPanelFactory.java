@@ -13,7 +13,9 @@ import java.awt.*;
 /**
  * 推送面板工厂 - 负责创建推送配置UI组件
  */
-public record PushPanelFactory(ConfigurationManager configManager) {
+public final class PushPanelFactory {
+
+    private final ConfigurationManager configManager;
 
     public PushPanelFactory(@NotNull ConfigurationManager configManager) {
         this.configManager = configManager;
