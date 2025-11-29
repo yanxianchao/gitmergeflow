@@ -27,9 +27,10 @@ public final class DialogLayoutManager {
      * @return 是否成功添加
      */
     public static boolean addComponent(@NotNull Container container, @NotNull JPanel component) {
-        return tryAddAboveButtons(container, component) ||
-               tryAddToMiddleArea(container, component) ||
-               tryAddToBottom(container, component);
+//        return tryAddAboveButtons(container, component) ||
+//               tryAddToMiddleArea(container, component) ||
+//               tryAddToBottom(container, component);
+        return tryAddNearPushTags(container, component);
     }
     
     /**

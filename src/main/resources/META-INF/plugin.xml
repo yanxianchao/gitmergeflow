@@ -8,19 +8,22 @@
     <idea-version since-build="241.14494"/>
 
     <description><![CDATA[
-    <h3>GitMergeFlow - Git分支合并工具</h3>
-    <p>在Git推送对话框中添加分支合并功能，简化代码合并流程。</p>
+    <h3>🔀 GitMergeFlow - Git分支合并工具</h3>
+    <p>🚀 在Git推送对话框中添加分支合并功能，简化代码合并流程。</p>
     
-    <h4>主要功能：</h4>
+    <h4>✨ 主要功能：</h4>
     <ul>
-    <li>在推送对话框中集成分支选择器</li>
-    <li>支持本地分支合并和推送</li>
-    <li>自动切换回原始分支</li>
-    <li>项目级配置管理</li>
+    <li>📋 在推送对话框中集成分支选择器</li>
+    <li>🔀 支持本地分支合并和推送</li>
+    <li>↩️ 自动切换回原始分支</li>
+    <li>⚙️ 项目级配置管理</li>
     </ul>
     
-    <h4>使用方法：</h4>
+    <h4>🎯 使用方法：</h4>
     <p>在Git推送时，勾选"推送到分支"选项，选择目标分支即可完成合并推送操作。</p>
+    
+    <h4>💡 优势：</h4>
+    <p>⚡ 提升开发效率 | 🎨 简化操作流程 | 🛡️ 减少合并错误</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
