@@ -23,9 +23,9 @@
 
 ## 🌐 Language Selection
 
-| 🇨🇳 简体中文 | 🇹🇼 繁體中文 | 🇺🇸 English |
-|-------------|-------------|-------------|
-| [简体中文](README.md) | [繁體中文](README.zh-TW.md) | **Current Document** |
+| 🇨🇳 简体中文 | 🇺🇸 English |
+|-------------|-------------|
+| [简体中文](README.md) | **Current Document** |
 
 > 💡 **Tip**: You can find all language versions in the project root directory, or visit the [Language Selection Page](README.lang.md) for the complete list.
 
@@ -81,15 +81,7 @@ GitMergeFlow achieves **one-click automatic merging** by integrating intelligent
 
 ### 💻 Installation Methods
 
-#### Method 1: Install from Plugin Marketplace (Recommended)
-
-1. Open IntelliJ IDEA
-2. Go to `File` → `Settings` → `Plugins`
-3. Search for "GitMergeFlow"
-4. Click `Install` to install the plugin
-5. Restart IDEA
-
-#### Method 2: Manual Installation
+#### Method 1: Manual Installation
 
 1. Download the latest plugin file:
    ```bash
@@ -101,7 +93,7 @@ GitMergeFlow achieves **one-click automatic merging** by integrating intelligent
    - Select the downloaded zip file
    - Restart IDEA
 
-#### Method 3: Developer Installation
+#### Method 2: Developer Installation
 
 ```bash
 # Clone repository
