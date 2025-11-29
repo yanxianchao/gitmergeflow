@@ -1,22 +1,26 @@
+// 插件配置
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '1.17.4'
 }
 
+// 项目基本信息
 group = 'com.github.yanxianchao'
 version = '1.0.0'
-
-// GitMergeFlow 插件配置
 project.ext.pluginName = 'GitMergeFlow'
 
+//仓库配置
 repositories {
     mavenCentral()
 }
 
+// IDEA插件配置
+//https://www.jetbrains.com/idea/download/other.html
 intellij {
     version = '2024.1.4'
     type = 'IC'
     plugins = ['Git4Idea']
+    downloadSources = true
 }
 
 tasks.withType(org.jetbrains.intellij.tasks.InstrumentCodeTask) {
