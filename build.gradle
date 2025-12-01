@@ -6,7 +6,7 @@ plugins {
 
 // 项目基本信息
 group = 'com.github.yanxianchao'
-version = '1.0.0'
+version = '1.0.1'
 project.ext.pluginName = 'GitMergeFlow'
 
 //仓库配置
