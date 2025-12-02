@@ -82,7 +82,7 @@ public class GitMergeOperations {
                     git.runCommand(pushHandler).throwOnError();
                     
                     showNotification(project, 
-                        String.format("成功将分支 '%s' 合并到 '%s' 并推送到远程仓库", currentBranch, targetBranch), 
+                        String.format("成功将分支 '%s' 合并到 '%s' 并推送到远程仓库 ", currentBranch, targetBranch),
                         NotificationType.INFORMATION);
                     
                 } finally {
