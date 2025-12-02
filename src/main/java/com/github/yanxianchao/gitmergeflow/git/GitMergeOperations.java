@@ -100,7 +100,7 @@ public class GitMergeOperations {
                     git.runCommand(checkoutBackHandler).throwOnError();
                     
                     // 刷新IDEA的Git状态
-                    refreshGitStatus(project, repository);
+                    repository.getRoot().refresh(false, true);
                     
                     showNotification(project, String.format("已切换回原始分支 '%s'", currentBranch), NotificationType.INFORMATION);
                 } catch (Exception checkoutBackException) {
