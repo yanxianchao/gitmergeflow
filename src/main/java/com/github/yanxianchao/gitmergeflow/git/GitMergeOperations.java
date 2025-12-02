@@ -270,11 +270,11 @@ public class GitMergeOperations {
                 //VirtualFileManager.getInstance().asyncRefresh(null);
                 
                 // 方案2: 更新Git仓库状态
-                //GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
-                //repositoryManager.updateRepository(repository.getRoot());
+                GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
+                repositoryManager.updateRepository(repository.getRoot());
                 
                 // 方案3: 强制刷新仓库状态
-                repository.update();
+                //repository.update();
                 
                 LOG.info("Git状态刷新完成");
             } catch (Exception e) {
