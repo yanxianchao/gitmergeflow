@@ -7,6 +7,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.openapi.vcs.VcsException;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import git4idea.GitUtil;
@@ -266,19 +267,20 @@ public class GitMergeOperations {
     private static void refreshGitStatus(@NotNull Project project, @NotNull GitRepository repository) {
         ApplicationManager.getApplication().invokeLater(() -> {
             try {
-                // 方案1: 刷新虚拟文件系统
-                VirtualFileManager.getInstance().asyncRefresh(null);
+                // 最佳方案：仅刷新项目根目录的VFS状态
+                repository.getRoot().refresh(false, true);
                 
-                // 方案2: 更新Git仓库状态
-                //GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
-                //repositoryManager.updateRepository(repository.getRoot());
+                // 触发VCS状态更新
+                //ProjectLevelVcsManager.getInstance(project).fileStatusChanged(repository.getRoot());
                 
-                // 方案3: 强制刷新仓库状态
+                // 更新仓库状态（轻量级）
                 //repository.update();
                 
                 LOG.info("Git状态刷新完成");
             } catch (Exception e) {
                 LOG.warn("刷新Git状态时发生错误", e);
+                // 降级方案：使用全局刷新
+                //VirtualFileManager.getInstance().asyncRefresh(null);
             }
         });
     }
