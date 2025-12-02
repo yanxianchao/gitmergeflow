@@ -27,7 +27,7 @@ public class GitMergeOperations {
             try {
                 GitRepository repository = GitUtil.getRepositoryManager(project).getRepositories().get(0);
                 if (repository == null) {
-                    showNotification(project, "未找到Git仓库 ", NotificationType.ERROR);
+                    showNotification(project, "未找到Git仓库", NotificationType.ERROR);
                     return;
                 }
                 String currentBranch = repository.getCurrentBranchName();
