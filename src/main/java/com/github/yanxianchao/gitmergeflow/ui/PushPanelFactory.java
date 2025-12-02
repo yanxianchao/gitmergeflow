@@ -25,7 +25,7 @@ public final class PushPanelFactory {
     public JPanel createPushPanel(@NotNull Project project, @NotNull String componentName) {
         PushConfiguration config = configManager.getConfiguration(project);
         // 创建组件
-        JCheckBox enableCheckBox = new NonFocusableCheckBox("推送到分支：");
+        JCheckBox enableCheckBox = new NonFocusableCheckBox("合并推送至：");
         JComboBox<String> branchComboBox = BranchComboBoxFactory.createBranchComboBox(project, config.getTargetBranch());
         // 初始化状态
         enableCheckBox.setSelected(config.isEnabled());
