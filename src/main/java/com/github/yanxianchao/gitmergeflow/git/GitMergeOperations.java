@@ -267,11 +267,11 @@ public class GitMergeOperations {
         ApplicationManager.getApplication().invokeLater(() -> {
             try {
                 // 方案1: 刷新虚拟文件系统
-                //VirtualFileManager.getInstance().asyncRefresh(null);
+                VirtualFileManager.getInstance().asyncRefresh(null);
                 
                 // 方案2: 更新Git仓库状态
-                GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
-                repositoryManager.updateRepository(repository.getRoot());
+                //GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
+                //repositoryManager.updateRepository(repository.getRoot());
                 
                 // 方案3: 强制刷新仓库状态
                 //repository.update();
