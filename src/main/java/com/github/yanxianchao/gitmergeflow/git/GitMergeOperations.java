@@ -7,11 +7,14 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.VcsException;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import git4idea.GitUtil;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommand;
 import git4idea.commands.GitLineHandler;
 import git4idea.repo.GitRepository;
+import git4idea.repo.GitRepositoryManager;
 import org.jetbrains.annotations.NotNull;
 
 public class GitMergeOperations {
@@ -94,6 +97,10 @@ public class GitMergeOperations {
                     GitLineHandler checkoutBackHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.CHECKOUT);
                     checkoutBackHandler.addParameters(currentBranch);
                     git.runCommand(checkoutBackHandler).throwOnError();
+                    
+                    // 刷新IDEA的Git状态
+                    refreshGitStatus(project, repository);
+                    
                     showNotification(project, String.format("已切换回原始分支 '%s'", currentBranch), NotificationType.INFORMATION);
                 } catch (Exception checkoutBackException) {
                     showNotification(project, String.format("切换回原始分支 '%s' 时发生错误，请手动确认", currentBranch),
@@ -248,6 +255,30 @@ public class GitMergeOperations {
             } catch (Exception e) {
                 LOG.warn("智能合并策略选择失败，回退到常规合并：" + e.getMessage());
                 performAutoMerge(project, targetBranch);
+            }
+        });
+    }
+
+    /**
+     * 刷新IDEA的Git状态显示
+     * 解决分支切换后IDEA界面显示不同步的问题
+     */
+    private static void refreshGitStatus(@NotNull Project project, @NotNull GitRepository repository) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            try {
+                // 方案1: 刷新虚拟文件系统
+                //VirtualFileManager.getInstance().asyncRefresh(null);
+                
+                // 方案2: 更新Git仓库状态
+                //GitRepositoryManager repositoryManager = GitUtil.getRepositoryManager(project);
+                //repositoryManager.updateRepository(repository.getRoot());
+                
+                // 方案3: 强制刷新仓库状态
+                repository.update();
+                
+                LOG.info("Git状态刷新完成");
+            } catch (Exception e) {
+                LOG.warn("刷新Git状态时发生错误", e);
             }
         });
     }
