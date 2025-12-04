@@ -7,15 +7,11 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vcs.ProjectLevelVcsManager;
-import com.intellij.openapi.vcs.VcsException;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import git4idea.GitUtil;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommand;
 import git4idea.commands.GitLineHandler;
 import git4idea.repo.GitRepository;
-import git4idea.repo.GitRepositoryManager;
 import org.jetbrains.annotations.NotNull;
 
 public class GitMergeOperations {
@@ -24,95 +20,93 @@ public class GitMergeOperations {
     private static final String NOTIFICATION_GROUP_ID = "GitMergeFlow通知";
 
     public static void performAutoMerge(@NotNull Project project, @NotNull String targetBranch) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            try {
-                GitRepository repository = GitUtil.getRepositoryManager(project).getRepositories().get(0);
-                if (repository == null) {
-                    showNotification(project, "未找到Git仓库", NotificationType.ERROR);
-                    return;
-                }
-                String currentBranch = repository.getCurrentBranchName();
-                if (currentBranch == null) {
-                    showNotification(project, "无法获取当前分支", NotificationType.ERROR);
-                    return;
-                }
-                if (currentBranch.equals(targetBranch)) {
-                    showNotification(project, "当前分支已经是目标分支，跳过合并操作", NotificationType.INFORMATION);
-                    return;
-                }
-
-                Git git = Git.getInstance();
-                // 切换到目标分支
-                try {
-                    GitLineHandler checkoutHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.CHECKOUT);
-                    checkoutHandler.addParameters(targetBranch);
-                    git.runCommand(checkoutHandler).throwOnError();
-                } catch (Exception checkoutException) {
-                    showNotification(project,
-                            String.format("切换到目标分支 '%s' 时发生错误，请手动合并", targetBranch),
-                            NotificationType.WARNING);
-                    return;
-                }
-
-                // 拉取目标分支的最新更改
-                try {
-                    GitLineHandler pullHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PULL);
-                    pullHandler.addParameters("origin", targetBranch);
-                    git.runCommand(pullHandler).throwOnError();
-                } catch (Exception pullException) {
-                    showNotification(project,
-                            String.format("拉取目标分支 '%s' 时发生冲突，请手动解决冲突后继续操作", targetBranch),
-                            NotificationType.WARNING);
-                    return;
-                }
-
-                // 将当前分支合并到目标分支
-                try {
-                    GitLineHandler mergeHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.MERGE);
-                    mergeHandler.addParameters(currentBranch);
-                    git.runCommand(mergeHandler).throwOnError();
-                } catch (Exception mergeException) {
-                    showNotification(project,
-                            String.format("合并分支 '%s' 到 '%s' 时发生冲突，请手动解决冲突后继续操作", currentBranch, targetBranch),
-                            NotificationType.WARNING);
-                    return;
-                }
-
-                // 推送目标分支
-                try {
-                    GitLineHandler pushHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PUSH);
-                    pushHandler.addParameters("origin", targetBranch);
-                    git.runCommand(pushHandler).throwOnError();
-                    showNotification(project,
-                            String.format("成功将分支 '%s' 合并到 '%s' 并推送到远程仓库", currentBranch, targetBranch),
-                            NotificationType.INFORMATION);
-                    ConfigurationManager.getInstance().disableAutoPush(project);
-                } catch (Exception pushException) {
-                    showNotification(project, String.format("推送分支 '%s' 到远程仓库时发生错误，请检查网络连接", targetBranch),
-                            NotificationType.WARNING);
-                    return;
-                }
-
-                // 切换回当前分支
-                try {
-                    GitLineHandler checkoutBackHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.CHECKOUT);
-                    checkoutBackHandler.addParameters(currentBranch);
-                    git.runCommand(checkoutBackHandler).throwOnError();
-                    
-                    // 刷新IDEA的Git状态
-                    repository.getRoot().refresh(false, true);
-                    
-                    showNotification(project, String.format("已切换回原始分支 '%s'", currentBranch), NotificationType.INFORMATION);
-                } catch (Exception checkoutBackException) {
-                    showNotification(project, String.format("切换回原始分支 '%s' 时发生错误，请手动确认", currentBranch),
-                            NotificationType.WARNING);
-                }
-
-            } catch (Exception e) {
-                LOG.warn("自动合并失败", e);
-                showNotification(project, "自动合并时发生错误，请手动确认", NotificationType.ERROR);
+        try {
+            GitRepository repository = GitUtil.getRepositoryManager(project).getRepositories().get(0);
+            if (repository == null) {
+                showNotification(project, "未找到Git仓库", NotificationType.ERROR);
+                return;
             }
-        });
+            String currentBranch = repository.getCurrentBranchName();
+            if (currentBranch == null) {
+                showNotification(project, "无法获取当前分支", NotificationType.ERROR);
+                return;
+            }
+            if (currentBranch.equals(targetBranch)) {
+                showNotification(project, "当前分支已经是目标分支，跳过合并操作", NotificationType.INFORMATION);
+                return;
+            }
+
+            Git git = Git.getInstance();
+            // 切换到目标分支
+            try {
+                GitLineHandler checkoutHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.CHECKOUT);
+                checkoutHandler.addParameters(targetBranch);
+                git.runCommand(checkoutHandler).throwOnError();
+            } catch (Exception checkoutException) {
+                showNotification(project,
+                        String.format("切换到目标分支 '%s' 时发生错误，请手动合并", targetBranch),
+                        NotificationType.WARNING);
+                return;
+            }
+
+            // 拉取目标分支的最新更改
+            try {
+                GitLineHandler pullHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PULL);
+                pullHandler.addParameters("origin", targetBranch);
+                git.runCommand(pullHandler).throwOnError();
+            } catch (Exception pullException) {
+                showNotification(project,
+                        String.format("拉取目标分支 '%s' 时发生冲突，请手动解决冲突后继续操作", targetBranch),
+                        NotificationType.WARNING);
+                return;
+            }
+
+            // 将当前分支合并到目标分支
+            try {
+                GitLineHandler mergeHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.MERGE);
+                mergeHandler.addParameters(currentBranch);
+                git.runCommand(mergeHandler).throwOnError();
+            } catch (Exception mergeException) {
+                showNotification(project,
+                        String.format("合并分支 '%s' 到 '%s' 时发生冲突，请手动解决冲突后继续操作", currentBranch, targetBranch),
+                        NotificationType.WARNING);
+                return;
+            }
+
+            // 推送目标分支
+            try {
+                GitLineHandler pushHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.PUSH);
+                pushHandler.addParameters("origin", targetBranch);
+                git.runCommand(pushHandler).throwOnError();
+                showNotification(project,
+                        String.format("成功将分支 '%s' 合并到 '%s' 并推送到远程仓库", currentBranch, targetBranch),
+                        NotificationType.INFORMATION);
+                ConfigurationManager.getInstance().disableAutoPush(project);
+            } catch (Exception pushException) {
+                showNotification(project, String.format("推送分支 '%s' 到远程仓库时发生错误，请检查网络连接", targetBranch),
+                        NotificationType.WARNING);
+                return;
+            }
+
+            // 切换回当前分支
+            try {
+                GitLineHandler checkoutBackHandler = new GitLineHandler(project, repository.getRoot(), GitCommand.CHECKOUT);
+                checkoutBackHandler.addParameters(currentBranch);
+                git.runCommand(checkoutBackHandler).throwOnError();
+
+                // 刷新IDEA的Git状态
+                repository.getRoot().refresh(false, true);
+
+                showNotification(project, String.format("已切换回原始分支 '%s'", currentBranch), NotificationType.INFORMATION);
+            } catch (Exception checkoutBackException) {
+                showNotification(project, String.format("切换回原始分支 '%s' 时发生错误，请手动确认", currentBranch),
+                        NotificationType.WARNING);
+            }
+
+        } catch (Exception e) {
+            LOG.warn("自动合并失败", e);
+            showNotification(project, "自动合并时发生错误，请手动确认", NotificationType.ERROR);
+        }
     }
 
     /**
@@ -269,13 +263,13 @@ public class GitMergeOperations {
             try {
                 // 最佳方案：仅刷新项目根目录的VFS状态
                 repository.getRoot().refresh(false, true);
-                
+
                 // 触发VCS状态更新
                 //ProjectLevelVcsManager.getInstance(project).fileStatusChanged(repository.getRoot());
-                
+
                 // 更新仓库状态（轻量级）
                 //repository.update();
-                
+
                 LOG.info("Git状态刷新完成");
             } catch (Exception e) {
                 LOG.warn("刷新Git状态时发生错误", e);
