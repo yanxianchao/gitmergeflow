@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.0-blue.svg)
+![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.2-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-IntelliJ%20IDEA-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Java Version](https://img.shields.io/badge/java-17%2B-brightgreen.svg)
-![IDEA Versions](https://img.shields.io/badge/IDEA-2024.1%2B-informational.svg)
+![Java Version](https://img.shields.io/badge/java-21%2B-brightgreen.svg)
+![IDEA Versions](https://img.shields.io/badge/IDEA-2025.2%2B-informational.svg)
 
 **🔀 Intelligent Git Branch Merging Tool - Simplify Code Merging**
 
@@ -46,6 +46,15 @@ GitMergeFlow achieves **one-click automatic merging** by integrating intelligent
 
 ---
 
+## 📝 Version Updates
+
+### v1.0.2 (2025-02-13)
+- **Platform Upgrade**: IntelliJ Platform Gradle Plugin upgraded to 2.10.2
+- **Kotlin Upgrade**: Upgraded to 2.1.20
+- **Java Upgrade**: Upgraded to Java 21
+- **IDEA Compatibility**: Supports IntelliJ IDEA 2025.2.4+
+- **Build Optimization**: Enabled Gradle configuration cache and build cache
+
 ## ✨ Features
 
 ### 🚀 Core Features
@@ -74,8 +83,8 @@ GitMergeFlow achieves **one-click automatic merging** by integrating intelligent
 
 | Requirement | Version | Description |
 |-------------|---------|-------------|
-| **IntelliJ IDEA** | 2024.1+ | Supports Community and Ultimate editions |
-| **Java** | 17+ | Runtime environment requirement |
+| **IntelliJ IDEA** | 2025.2+ | Supports Community and Ultimate editions |
+| **Java** | 21+ | Runtime environment requirement |
 | **Git** | 2.0+ | Version control tool |
 | **Operating System** | Windows/macOS/Linux | Cross-platform support |
 
@@ -294,7 +303,7 @@ cd gitmergeflow
 ./gradlew buildPlugin
 
 # Generated plugin location
-# build/distributions/GitMergeFlow-1.0.0.zip
+# build/distributions/GitMergeFlow-1.0.2.zip
 ```
 
 #### Code Quality Check

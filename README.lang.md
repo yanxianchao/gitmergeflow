@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.0-blue.svg)
+![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.2-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-IntelliJ%20IDEA-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Java Version](https://img.shields.io/badge/java-17%2B-brightgreen.svg)
-![IDEA Versions](https://img.shields.io/badge/IDEA-2024.1%2B-informational.svg)
+![Java Version](https://img.shields.io/badge/java-21%2B-brightgreen.svg)
+![IDEA Versions](https://img.shields.io/badge/IDEA-2025.2%2B-informational.svg)
 
 **🔀 智能Git分支合并工具 / Intelligent Git Branch Merging Tool**
 
@@ -39,6 +39,15 @@ GitMergeFlow 是一款专为 IntelliJ IDEA 设计的智能Git分支合并插件�
 GitMergeFlow is an intelligent Git branch merging plugin designed specifically for IntelliJ IDEA, aimed at solving code synchronization challenges in multi-project development environments. It achieves one-click automatic merging by integrating intelligent merging functionality into the Git push dialog.
 
 ---
+
+## 📝 Version / 版本
+
+### v1.0.2 (2025-02-13)
+**Platform Upgrade / 平台升级**:
+- IntelliJ Platform Gradle Plugin 2.10.2
+- Kotlin 2.1.20
+- Java 21
+- Supports IntelliJ IDEA 2025.2+ / 支持 IntelliJ IDEA 2025.2+
 
 ## 📊 Project Overview / 项目概览
 

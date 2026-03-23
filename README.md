@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.0-blue.svg)
+![GitMergeFlow Logo](https://img.shields.io/badge/GitMergeFlow-1.0.2-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-IntelliJ%20IDEA-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Java Version](https://img.shields.io/badge/java-17%2B-brightgreen.svg)
-![IDEA Versions](https://img.shields.io/badge/IDEA-2024.1%2B-informational.svg)
+![Java Version](https://img.shields.io/badge/java-21%2B-brightgreen.svg)
+![IDEA Versions](https://img.shields.io/badge/IDEA-2025.2%2B-informational.svg)
 
 **🔀 智能Git分支合并工具 - 让代码合并变得简单高效**
 
@@ -46,6 +46,15 @@ GitMergeFlow 通过在Git推送对话框中集成智能合并功能，实现了*
 
 ---
 
+## 📝 版本更新
+
+### v1.0.2 (2025-02-13)
+- **平台升级**: IntelliJ Platform Gradle Plugin 升级至 2.10.2
+- **Kotlin 升级**: 升级至 2.1.20
+- **Java 升级**: 升级至 Java 21
+- **IDEA 兼容**: 支持 IntelliJ IDEA 2025.2.4+
+- **构建优化**: 启用 Gradle 配置缓存和构建缓存
+
 ## ✨ 功能特性
 
 ### 🚀 核心功能
@@ -74,8 +83,8 @@ GitMergeFlow 通过在Git推送对话框中集成智能合并功能，实现了*
 
 | 要求 | 版本 | 说明 |
 |------|------|------|
-| **IntelliJ IDEA** | 2024.1+ | 支持社区版和旗舰版 |
-| **Java** | 17+ | 运行环境要求 |
+| **IntelliJ IDEA** | 2025.2+ | 支持社区版和旗舰版 |
+| **Java** | 21+ | 运行环境要求 |
 | **Git** | 2.0+ | 版本控制工具 |
 | **操作系统** | Windows/macOS/Linux | 跨平台支持 |
 
@@ -294,7 +303,7 @@ cd gitmergeflow
 ./gradlew buildPlugin
 
 # 生成的插件位置
-# build/distributions/GitMergeFlow-1.0.0.zip
+# build/distributions/GitMergeFlow-1.0.2.zip
 ```
 
 #### 代码质量检查
