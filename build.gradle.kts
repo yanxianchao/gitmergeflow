@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.yanxianchao"
-version = "1.0.2"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -46,6 +46,11 @@ tasks {
     withType<JavaCompile> {
         sourceCompatibility = "21"
         targetCompatibility = "21"
+    }
+
+    // 禁用代码检测任务，避免 Packages 目录不存在的问题
+    instrumentCode {
+        enabled = false
     }
 }
 

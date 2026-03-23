@@ -2,7 +2,6 @@ package com.github.yanxianchao.gitmergeflow.ui;
 
 import com.github.yanxianchao.gitmergeflow.config.ConfigurationManager;
 import com.github.yanxianchao.gitmergeflow.utils.ProjectResolver;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +61,8 @@ public final class GitPushDialogEnhancer {
 
     private boolean isPushDialog(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
-        return title != null && title.startsWith("Push Commits to ");
+        return title != null
+                && (title.startsWith("Push Commits to ") || title.startsWith("将提交推送到 "));
     }
 
     private void enhanceDialog(@NotNull JDialog dialog) {

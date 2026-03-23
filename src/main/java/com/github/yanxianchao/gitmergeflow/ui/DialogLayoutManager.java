@@ -9,19 +9,19 @@ import java.awt.*;
  * 对话框布局管理器 - 负责在对话框中添加组件的布局策略
  */
 public final class DialogLayoutManager {
-    
+
     private static final int MIN_BUTTON_COUNT_FOR_PANEL = 2;
-    
+
     private DialogLayoutManager() {
         throw new UnsupportedOperationException("Utility class");
     }
-    
+
     /**
      * 添加组件到容器中，使用以下策略（按优先级顺序）：
      * 1. 尝试添加到按钮上方区域（推送标签附近或按钮面板上方）
      * 2. 尝试添加到中间内容区域
      * 3. 尝试添加到容器底部
-     * 
+     *
      * @param container 目标容器
      * @param component 要添加的组件
      * @return 是否成功添加
@@ -32,16 +32,16 @@ public final class DialogLayoutManager {
 //               tryAddToBottom(container, component);
         return tryAddNearPushTags(container, component);
     }
-    
+
     /**
      * 策略1：尝试添加到按钮上方区域
      * 优先级：推送标签附近 > 按钮面板上方
      */
     private static boolean tryAddAboveButtons(@NotNull Container container, @NotNull JPanel component) {
-        return tryAddNearPushTags(container, component) || 
-               tryAddAboveButtonPanel(container, component);
+        return tryAddNearPushTags(container, component) ||
+                tryAddAboveButtonPanel(container, component);
     }
-    
+
     /**
      * 尝试添加到推送标签附近（同一行）
      */
@@ -50,11 +50,11 @@ public final class DialogLayoutManager {
         if (pushTagsComponent == null || pushTagsComponent.getParent() == null) {
             return false;
         }
-        
+
         Container parent = pushTagsComponent.getParent();
         return addToLayoutByType(parent, component, BorderLayout.EAST);
     }
-    
+
     /**
      * 尝试添加到按钮面板上方
      */
@@ -63,10 +63,10 @@ public final class DialogLayoutManager {
         if (buttonPanel == null || buttonPanel.getParent() == null) {
             return false;
         }
-        
+
         Container parent = buttonPanel.getParent();
         LayoutManager layout = parent.getLayout();
-        
+
         if (layout instanceof BorderLayout borderLayout) {
             Component center = borderLayout.getLayoutComponent(BorderLayout.CENTER);
             if (center instanceof Container) {
@@ -81,7 +81,7 @@ public final class DialogLayoutManager {
         }
         return false;
     }
-    
+
     /**
      * 递归查找推送标签相关组件
      */
@@ -90,7 +90,7 @@ public final class DialogLayoutManager {
             if (isPushTagsComponent(component)) {
                 return component;
             }
-            
+
             // 递归查找子容器
             if (component instanceof Container) {
                 Component found = findPushTagsComponent((Container) component);
@@ -101,22 +101,22 @@ public final class DialogLayoutManager {
         }
         return null;
     }
-    
+
     /**
      * 判断是否为推送标签组件
      */
     private static boolean isPushTagsComponent(@NotNull Component component) {
         String text = null;
-        
+
         if (component instanceof JCheckBox checkBox) {
             text = checkBox.getText();
         } else if (component instanceof JLabel label) {
             text = label.getText();
         }
-        
-        return text != null && (text.contains("Push tags") || text.contains("tags"));
+
+        return text != null && (text.contains("Push tags") || text.contains("tags") || text.contains("推送标记"));
     }
-    
+
     /**
      * 策略2：尝试添加到中间内容区域
      */
@@ -128,7 +128,7 @@ public final class DialogLayoutManager {
                 return addToContainerBottom((Container) center, component);
             }
         }
-        
+
         // 查找非按钮面板的内容面板
         for (Component comp : container.getComponents()) {
             if (comp instanceof JPanel panel && panel.getComponentCount() > 0 && !isButtonPanel(panel)) {
@@ -137,34 +137,34 @@ public final class DialogLayoutManager {
         }
         return false;
     }
-    
+
     /**
      * 策略3：尝试添加到容器底部
      */
     private static boolean tryAddToBottom(@NotNull Container container, @NotNull JPanel component) {
         return addToLayoutByType(container, component, BorderLayout.SOUTH);
     }
-    
+
     /**
      * 根据容器布局类型添加组件到底部
      */
     private static boolean addToContainerBottom(@NotNull Container container, @NotNull JPanel component) {
         return addToLayoutByType(container, component, BorderLayout.SOUTH);
     }
-    
+
     /**
      * 根据布局管理器类型添加组件
-     * 
-     * @param container 目标容器
-     * @param component 要添加的组件
+     *
+     * @param container        目标容器
+     * @param component        要添加的组件
      * @param borderConstraint BorderLayout约束（如果适用）
      * @return 是否成功添加
      */
-    private static boolean addToLayoutByType(@NotNull Container container, 
-                                           @NotNull JPanel component, 
-                                           @NotNull String borderConstraint) {
+    private static boolean addToLayoutByType(@NotNull Container container,
+                                             @NotNull JPanel component,
+                                             @NotNull String borderConstraint) {
         LayoutManager layout = container.getLayout();
-        
+
         if (layout instanceof BorderLayout borderLayout) {
             if (borderLayout.getLayoutComponent(borderConstraint) == null) {
                 container.add(component, borderConstraint);
@@ -176,7 +176,7 @@ public final class DialogLayoutManager {
         }
         return false;
     }
-    
+
     /**
      * 递归查找按钮面板
      */
@@ -185,7 +185,7 @@ public final class DialogLayoutManager {
             if (isButtonPanel(component)) {
                 return component;
             }
-            
+
             // 递归查找子容器
             if (component instanceof Container) {
                 Component found = findButtonPanel((Container) component);
@@ -196,7 +196,7 @@ public final class DialogLayoutManager {
         }
         return null;
     }
-    
+
     /**
      * 判断是否为按钮面板（包含至少2个按钮的容器）
      */
@@ -204,7 +204,7 @@ public final class DialogLayoutManager {
         if (!(component instanceof Container container)) {
             return false;
         }
-        
+
         int buttonCount = 0;
         for (Component child : container.getComponents()) {
             if (child instanceof JButton) {
@@ -213,7 +213,7 @@ public final class DialogLayoutManager {
         }
         return buttonCount >= MIN_BUTTON_COUNT_FOR_PANEL;
     }
-    
+
     /**
      * 获取组件在父容器中的索引位置
      */
