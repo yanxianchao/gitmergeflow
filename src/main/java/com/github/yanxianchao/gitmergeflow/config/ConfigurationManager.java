@@ -33,11 +33,29 @@ public final class ConfigurationManager {
     }
 
     public void enableAutoPush(@NotNull Project project, @NotNull String targetBranch) {
-        updateConfiguration(project, PushConfiguration.enabled(targetBranch));
+        PushConfiguration current = getConfiguration(project);
+        PushConfiguration updated = PushConfiguration.enabled(targetBranch)
+                .withDeploy(current.isDeployEnabled(), current.getGoodsId())
+                .withAppName(current.getAppName());
+        updateConfiguration(project, updated);
     }
 
     public void disableAutoPush(@NotNull Project project) {
-        updateConfiguration(project, PushConfiguration.disabled(getConfiguration(project).getTargetBranch()));
+        PushConfiguration current = getConfiguration(project);
+        PushConfiguration updated = PushConfiguration.disabled(current.getTargetBranch())
+                .withDeploy(current.isDeployEnabled(), current.getGoodsId())
+                .withAppName(current.getAppName());
+        updateConfiguration(project, updated);
+    }
+
+    public void updateDeploy(@NotNull Project project, boolean deployEnabled, @NotNull String goodsId) {
+        PushConfiguration current = getConfiguration(project);
+        updateConfiguration(project, current.withDeploy(deployEnabled, goodsId));
+    }
+
+    public void updateAppName(@NotNull Project project, @NotNull String appName) {
+        PushConfiguration current = getConfiguration(project);
+        updateConfiguration(project, current.withAppName(appName));
     }
 
     private String getProjectKey(@NotNull Project project) {

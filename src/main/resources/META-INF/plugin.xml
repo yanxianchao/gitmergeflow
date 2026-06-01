@@ -36,6 +36,14 @@
         <!-- 启动监听器 - 确保服务初始化 -->
         <postStartupActivity implementation="com.github.yanxianchao.gitmergeflow.launcher.GitMergeFlowLauncher"/>
 
+        <!-- MCP连接配置持久化 -->
+        <applicationService serviceImplementation="com.github.yanxianchao.gitmergeflow.config.McpSettings"/>
+
+        <!-- MCP配置面板 (Settings → Tools → GitMergeFlow) -->
+        <applicationConfigurable parentId="tools"
+                                 instance="com.github.yanxianchao.gitmergeflow.config.McpSettingsConfigurable"
+                                 id="com.github.yanxianchao.gitmergeflow.config.McpSettingsConfigurable"
+                                 displayName="GitMergeFlow"/>
     </extensions>
 
     <projectListeners>

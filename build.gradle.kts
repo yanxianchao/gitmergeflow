@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.yanxianchao"
-version = "1.0.3"
+version = "1.0.4"
 
 repositories {
     mavenCentral()
@@ -50,6 +50,11 @@ tasks {
 
     // 禁用代码检测任务，避免 Packages 目录不存在的问题
     instrumentCode {
+        enabled = false
+    }
+
+    // 禁用搜索选项索引构建，避免非默认 Locale 下构建失败
+    buildSearchableOptions {
         enabled = false
     }
 }
