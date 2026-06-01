@@ -26,8 +26,8 @@ public final class McpSettingsConfigurable implements Configurable {
 
     @Override
     public @Nullable JComponent createComponent() {
-        mcpUrlField = new JBTextField();
-        authTokenField = new JBTextField();
+        mcpUrlField = new JBTextField(40);
+        authTokenField = new JBTextField(40);
 
         return FormBuilder.createFormBuilder()
                 .addLabeledComponent(new JBLabel("URL（Streamable HTTP）:"), mcpUrlField, 1, false)
