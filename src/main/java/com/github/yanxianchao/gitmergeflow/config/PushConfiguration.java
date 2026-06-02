@@ -3,6 +3,8 @@ package com.github.yanxianchao.gitmergeflow.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * 推送配置领域模型
  * 封装项目级别的推送设置
@@ -89,7 +91,7 @@ public final class PushConfiguration {
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(enableAutoPush, targetBranch, deployEnabled, goodsId, appName);
+        return Objects.hash(enableAutoPush, targetBranch, deployEnabled, goodsId, appName);
     }
 
     @Override

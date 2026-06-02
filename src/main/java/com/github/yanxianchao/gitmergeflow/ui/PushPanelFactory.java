@@ -8,10 +8,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.NonFocusableCheckBox;
 import com.intellij.util.ui.JBUI;
-import git4idea.repo.GitRepository;
-import git4idea.repo.GitRepositoryManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,17 +59,7 @@ public final class PushPanelFactory {
             goodsComboBox.setSelectedItem(savedGoodsId);
         }
 
-        // 初始化应用名（从Git仓库推断或使用已保存的值）
-        String appName = config.getAppName();
-        if (appName.isEmpty()) {
-            appName = resolveAppNameFromGit(project);
-            if (appName != null && !appName.isEmpty()) {
-                configManager.updateAppName(project, appName);
-            }
-        }
-
         // 点击下拉框时自动加载制品列表（仅首次加载）
-        String finalAppName = appName;
         goodsComboBox.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
             private boolean loaded = false;
 
@@ -80,7 +67,7 @@ public final class PushPanelFactory {
             public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
                 if (!loaded) {
                     loaded = true;
-                    loadGoodsList(project, finalAppName, goodsComboBox);
+                    loadGoodsList(project, goodsComboBox);
                 }
             }
 
@@ -100,7 +87,7 @@ public final class PushPanelFactory {
             saveGoodsId(deployCheckBox, goodsComboBox, project);
         });
 
-        goodsComboBox.addActionListener(e -> saveGoodsId(deployCheckBox, goodsComboBox, project));
+        goodsComboBox.addActionListener(e -> handleGoodsSelection(deployCheckBox, goodsComboBox, project));
 
         // 编辑器内容变化时也保存
         JTextField editorField = (JTextField) goodsComboBox.getEditor().getEditorComponent();
@@ -120,62 +107,10 @@ public final class PushPanelFactory {
     }
 
     /**
-     * 从Git仓库远程URL推断应用名
-     */
-    @Nullable
-    private String resolveAppNameFromGit(@NotNull Project project) {
-        try {
-            GitRepositoryManager manager = GitRepositoryManager.getInstance(project);
-            List<GitRepository> repositories = manager.getRepositories();
-            if (repositories.isEmpty()) return null;
-
-            GitRepository repository = repositories.get(0);
-            var remotes = repository.getRemotes();
-            for (var remote : remotes) {
-                var urls = remote.getUrls();
-                for (String url : urls) {
-                    String repoName = extractRepoName(url);
-                    if (repoName != null) {
-                        LOG.info("从Git远程URL推断应用名: " + repoName);
-                        return repoName;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.warn("从Git仓库推断应用名失败", e);
-        }
-        return null;
-    }
-
-    /**
-     * 从Git URL中提取仓库名
-     * 支持格式：https://xxx/group/repo.git 或 git@xxx:group/repo.git
-     */
-    @Nullable
-    private String extractRepoName(@NotNull String gitUrl) {
-        String url = gitUrl.trim();
-        if (url.endsWith(".git")) {
-            url = url.substring(0, url.length() - 4);
-        }
-        int lastSlash = url.lastIndexOf('/');
-        int lastColon = url.lastIndexOf(':');
-        int separator = Math.max(lastSlash, lastColon);
-        if (separator >= 0 && separator < url.length() - 1) {
-            return url.substring(separator + 1);
-        }
-        return null;
-    }
-
-    /**
      * 异步加载制品列表到ComboBox
      */
-    private void loadGoodsList(@NotNull Project project, @Nullable String appName,
-                               @NotNull JComboBox<String> goodsComboBox) {
-        if (appName == null || appName.isEmpty()) {
-            LOG.warn("应用名称为空，无法加载制品列表");
-            return;
-        }
-
+    private void loadGoodsList(@NotNull Project project, @NotNull JComboBox<String> goodsComboBox) {
+        String appName = project.getName();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             Integer appId = McpAppService.getAppIdByName(appName);
             if (appId == null) {
@@ -200,6 +135,23 @@ public final class PushPanelFactory {
                 LOG.info("制品列表加载完成，共 " + goodsList.size() + " 条");
             });
         });
+    }
+
+    /**
+     * 处理制品选择，选择列表项后仅显示制品ID
+     */
+    private void handleGoodsSelection(@NotNull JCheckBox deployCheckBox,
+                                      @NotNull JComboBox<String> goodsComboBox,
+                                      @NotNull Project project) {
+        String goodsId = getGoodsIdFromComboBox(goodsComboBox);
+        Object editorItem = goodsComboBox.getEditor().getItem();
+        String editorText = editorItem == null ? "" : editorItem.toString().trim();
+
+        if (!goodsId.equals(editorText)) {
+            goodsComboBox.getEditor().setItem(goodsId);
+        }
+
+        configManager.updateDeploy(project, deployCheckBox.isSelected(), goodsId);
     }
 
     /**

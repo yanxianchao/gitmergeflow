@@ -2,6 +2,7 @@ package com.github.yanxianchao.gitmergeflow.utils;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,18 +31,27 @@ public final class ProjectResolver {
     @Nullable
     public static Project getCurrentActiveProject() {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        return openProjects.length > 0 ? openProjects[openProjects.length - 1] : null;
+        return openProjects.length == 1 ? openProjects[0] : null;
     }
     
     @Nullable
     private static Project resolveFromOwnerWindow(@NotNull JDialog dialog) {
         Window owner = dialog.getOwner();
+        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+
+        for (Project project : openProjects) {
+            Window projectFrame = WindowManager.getInstance().getFrame(project);
+            if (projectFrame != null && owner == projectFrame) {
+                return project;
+            }
+        }
+
         if (!(owner instanceof Frame frame)) return null;
-        
+
         String title = frame.getTitle();
         if (title == null) return null;
-        
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+
+        for (Project project : openProjects) {
             if (title.contains(project.getName())) {
                 return project;
             }
