@@ -22,17 +22,20 @@ public final class McpDeployService {
      *
      * @param project 当前项目
      * @param goodsId 制品ID
+     * @return 部署请求是否发送成功
      */
-    public static void resetAndDeployToPreEnv(@NotNull Project project, @NotNull String goodsId) {
+    public static boolean resetAndDeployToPreEnv(@NotNull Project project, @NotNull String goodsId) {
         try {
             String result = McpClient.callTool("reset_app_goods",
                     "\"goods_id\":" + goodsId + ",\"tag\":\"pre-i0\"");
             LOG.info("MCP调用结果: " + result);
 
             notifyInfo(project, "制品(" + goodsId + ")重制部署请求已发送，请关注运维平台状态。");
+            return true;
         } catch (Exception e) {
             LOG.error("重制制品部署失败, goodsId=" + goodsId, e);
             notifyError(project, "重制制品部署失败: " + e.getMessage());
+            return false;
         }
     }
 

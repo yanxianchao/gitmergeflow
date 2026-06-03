@@ -42,7 +42,9 @@ public class PushInterceptor implements git4idea.push.GitPushListener {
 
                 if (needDeploy) {
                     LOG.info("合并完成，开始执行预发环境部署, goodsId=" + goodsId);
-                    McpDeployService.resetAndDeployToPreEnv(project, goodsId);
+                    if (McpDeployService.resetAndDeployToPreEnv(project, goodsId)) {
+                        configManager.updateDeploy(project, false, goodsId);
+                    }
                 }
             });
         } else if (needDeploy) {
@@ -50,9 +52,11 @@ public class PushInterceptor implements git4idea.push.GitPushListener {
             String goodsId = config.getGoodsId();
             LOG.info("开始执行预发环境部署, goodsId=" + goodsId);
 
-            ApplicationManager.getApplication().executeOnPooledThread(() ->
-                    McpDeployService.resetAndDeployToPreEnv(project, goodsId)
-            );
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                if (McpDeployService.resetAndDeployToPreEnv(project, goodsId)) {
+                    configManager.updateDeploy(project, false, goodsId);
+                }
+            });
         }
     }
 }
